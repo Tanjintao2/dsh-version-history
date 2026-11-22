@@ -17,8 +17,12 @@ const args = process.argv.slice(2)
 const panelMode = args.includes('--panel')
 const lanMode = args.includes('--lan')
 const githubMode = args.includes('--github')
+const backupMode = args.includes('--backup')
 const out = args.find((a) => !a.startsWith('--')) ||
-  join(here, panelMode ? 'preview-main.html' : (lanMode ? 'preview-lan.html' : (githubMode ? 'preview-github.html' : 'preview-disks.html')))
+  join(here, panelMode ? 'preview-main.html'
+    : (lanMode ? 'preview-lan.html'
+      : (githubMode ? 'preview-github.html'
+        : (backupMode ? 'preview-backup.html' : 'preview-disks.html'))))
 
 const src = readFileSync(join(here, 'lib', 'client.js'), 'utf8')
 const health = JSON.parse(readFileSync(process.env.VH_HEALTH || 'E:/Git/reports/health.json', 'utf8'))
@@ -77,6 +81,42 @@ globalThis.fetch = (url) => {
         ips: [{ address: '192.168.3.38', name: '以太网 2' }],
         urls: ['http://192.168.3.38:8788/git/local.git'],
         error: null,
+      }),
+    })
+  }
+  if (String(url).indexOf('/dsh-vh/backup') >= 0) {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({ ok: true, mirror: 'I:\\GitBackup', keep: 10 }),
+    })
+  }
+  if (String(url).endsWith('/backup.json')) {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        file: 'E:\\Git\\reports\\backup.json',
+        exists: false,
+        mirror: 'I:\\GitBackup',
+        keep: 10,
+        reposRoot: 'E:\\Git\\repos',
+        hasPassword: !process.env.VH_BK_FRESH,
+        passwordMode: process.env.VH_BK_FRESH ? '' : 'set',
+        lastRun: {
+          at: '2026-11-23T00:52:10.000Z',
+          mirror: 'I:\\GitBackup',
+          ok: true,
+          count: 4,
+          okCount: 4,
+          ms: 2140,
+          repos: [
+            { name: 'local', head: '5cc1340', bundleBytes: 61234, pruned: 0 },
+            { name: 'dsh-rhino-plugin', head: '8f4f0f1', bundleBytes: 918233, pruned: 1 },
+            { name: 'handoff', head: '23c074a', bundleBytes: 41233, pruned: 0 },
+            { name: 'dsh-version-history', head: 'e22112d', bundleBytes: 140233, pruned: 1 },
+          ],
+        },
       }),
     })
   }
@@ -141,6 +181,7 @@ mod.apply({
 if (!disksTab) throw new Error('disks tab was not registered')
 if (lanMode && !tabs['version-history:lan']) throw new Error('lan tab was not registered')
 if (githubMode && !tabs['version-history:github']) throw new Error('github tab was not registered')
+if (backupMode && !tabs['version-history:backup']) throw new Error('backup tab was not registered')
 if (panelMode && !panel) throw new Error('main panel was not registered')
 
 const tick = () => new Promise((r) => setTimeout(r, 0))
@@ -202,6 +243,8 @@ if (panelMode) {
   body = render(await renderComponent(tabs['version-history:lan'].component, {}))
 } else if (githubMode) {
   body = render(await renderComponent(tabs['version-history:github'].component, {}))
+} else if (backupMode) {
+  body = render(await renderComponent(tabs['version-history:backup'].component, {}))
 } else {
   body = diskHtml
 }
@@ -209,10 +252,13 @@ if (panelMode) {
 const frameCss = panelMode
   ? `.frame{width:1240px;height:calc(100vh - 28px);}`
   : `.frame{width:520px;height:calc(100vh - 28px);}`
-const barTitle = panelMode ? '主面板 · GIT管理（含常驻磁盘列）' : (lanMode ? '右侧栏 · 局域网 Git' : (githubMode ? '右侧栏 · GitHub' : '右侧栏 · 磁盘'))
+const barTitle = panelMode ? '主面板 · GIT管理（含常驻磁盘列）'
+  : (lanMode ? '右侧栏 · 局域网 Git'
+    : (githubMode ? '右侧栏 · GitHub'
+      : (backupMode ? '主面板 · 备份设置' : '右侧栏 · 磁盘')))
 
 const html = `<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><title>${panelMode ? '主面板预览' : (githubMode ? 'GitHub 面板预览' : '磁盘面板预览')}</title>
+<html lang="zh-CN"><head><meta charset="utf-8"><title>${panelMode ? '主面板预览' : (githubMode ? 'GitHub 面板预览' : (backupMode ? '备份设置预览' : '磁盘面板预览'))}</title>
 <style>
   :root{
     --dsw-alias-bg-base:#16191d; --dsw-alias-bg-layer-1:#1b1f24; --dsw-alias-bg-layer-2:#232830;

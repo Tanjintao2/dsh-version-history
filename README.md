@@ -7,6 +7,8 @@ DeepSeek Harness（DSH）侧边栏插件：把本机 git 仓的**版本变化**�
 ![GitHub 绑定卡片](docs/screenshots/panel-github.png)
 
 - 侧边栏入口 `GIT管理`（`sidebar.panellist` id `version-history`，order 21）；主面板三栏 —— 左「仓库 / 版本」、中「提交明细」、右「磁盘」。
+- 顶栏按钮：`重新生成` / `磁盘面板` / `局域网` / `GitHub` / `备份` / `新标签打开` —— 其中「磁盘面板 / 局域网 / GitHub」会**先在面板内切子视图**（带「← 返回」），同时尽量把右侧栏那一页也打开。
+- **备份**：面板内「备份设置」区块 —— 设镜像目录 + 一键拷贝（镜像并打 bundle），可加一道许可密码（scrypt 哈希，首次打开问一次，也可以选择不设）。
 - 纯前端 fetch 本包 Host half 的同源路由取数，不拉 iframe（能吃到 DSH 的主题变量与 locale）。
 
 ## 安装
@@ -19,13 +21,28 @@ DeepSeek Harness（DSH）侧边栏插件：把本机 git 仓的**版本变化**�
 # 改完 client half：DSH 窗口刷新页面
 ```
 
+## 备份（镜像 / 一键拷贝 / 许可密码）
+
+主面板顶栏「备份」→「备份设置」：
+
+1. **镜像**：填镜像根目录（绝对路径，例如 `I:\GitBackup`）→「保存镜像」。目录不存在会建；界面回显派生的 `bundles/`、`logs/`。
+2. **一键拷贝**：把下面列出的仓逐个镜像过去（已有的 `git push --mirror`，没有的 `git clone --mirror`），再各打一份
+   `bundles/<名字>-<yyyymmdd-HHmmss>.bundle`；每个仓只保留最近 `保留 N 份`（默认 10）。
+   要备份的仓 = `reposRoot` 下的裸仓 + `data.json` 里列出的项目仓（按名字去重）。
+3. **许可密码**：第一次打开会问「要不要设密码」——
+   - 设了：以后每次「保存镜像」「一键拷贝」都要输入，否则 Host 侧直接拒绝（`needPassword` / `badPassword`）；
+   - 不设：写 `passwordMode:'none'`，之后不再询问；也可以随时在这个区块里补设或清除。
+   密码用 `scrypt` 加盐哈希存在 `reports/backup.json`，**不存明文、不回显**。
+
+> 每天 21:00 的计划任务（外部 `backup.ps1`）仍然独立运行；面板里这个按钮是**手动补一次**，覆盖全部项目仓。
+
 ## 配置（可移植）
 
 **代码里没有任何个人绝对路径。** 目录默认从 `~/.dsh-version-history` 派生：
 
 ```
 ~/.dsh-version-history/
-├── reports/     data.json、health.json、smart.json、repos.json、github.json、history.html
+├── reports/     data.json、health.json、smart.json、repos.json、github.json、backup.json、history.html
 └── scripts/     visualize.ps1、disk-health.ps1、disk-health-admin.ps1、smart-launch.ps1、dpapi.ps1
 ```
 

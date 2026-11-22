@@ -3,6 +3,20 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.5
+
+- **备份设置区块**（面板顶栏「备份」→ 子视图「备份设置」）：
+  - 「镜像」：填镜像根目录（绝对路径）并保存，界面回显派生的 `bundles/`、`logs/`。
+  - 「一键拷贝」：把 `reposRoot` 下的裸仓 + 页面清单里的项目仓逐个镜像过去
+    （已有就 `git push --mirror`，没有就 `git clone --mirror`），再各打一份
+    `bundles/<名字>-<时间戳>.bundle`，每个仓只保留最近 `keep` 份（默认 10）。
+  - 两个动作都可以加一道**许可密码**（scrypt 加盐哈希，存在 `reports/backup.json`）：
+    首次打开询问「要不要设密码」，可以选「不设密码」（之后不再询问）。
+  - 新增 `lib/backup.js`、`GET /version-history/backup.json`、`POST /dsh-vh/backup`
+    （`set-password` / `clear-password` / `set-mirror` / `run` / `status`）、
+    `selftest-backup.mjs`（真 git 仓、真 bundle、真密码校验）。
+- `render-preview.mjs --backup` 可离线渲染这个区块；`lib/paths.js` 增加 `backupPath`。
+
 ## 0.1.4
 
 - Drop `"private": true` so the package can be installed from the tarball (and is

@@ -556,6 +556,25 @@ if (githubTab) {
       }
     }
   }
+
+  // 顶栏「备份」→ 面板内切到「备份设置」子视图（不依赖右侧栏）
+  {
+    hooks = []
+    let t2 = await settle(panel)
+    const bk = nodesOf(t2).filter((n) => n.type === 'button').find((b) => textOf(b).trim() === '备份')
+    result.backupView = { found: !!bk }
+    if (bk) {
+      const before = fetchCalls.length
+      bk.props.onClick({ preventDefault() {}, target: null })
+      await tick(); await tick()
+      t2 = await settle(panel)
+      result.backupView.subbarTitle = nodesOf(t2)
+        .filter((n) => n.props && n.props.className === 'vh-subbar')
+        .map((n) => textOf(n).replace(/\s+/g, ' ').trim())[0] || ''
+      result.backupView.hasBack = textOf(t2).indexOf('← 返回') >= 0
+      result.backupView.fetches = fetchCalls.slice(before).map((c) => c.method + ' ' + c.url)
+    }
+  }
 }
 
 console.log(JSON.stringify(result, null, 2))

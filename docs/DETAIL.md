@@ -77,6 +77,25 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 - 路由：`GET /version-history/github.json`（只读状态）、`GET /version-history/github/test`；写操作（bind/unbind/test/push/repos）走 **`POST /dsh-vh/gh`**（普通 handler 路由，`kind:'exact'`，故意在 `/version-history` 前缀外 —— resource 路由只放行 GET）。
 - 客户端：better-sidebar 标签页 `version-history:github`（order 62）+ 主面板顶栏「GitHub / GitHub · 已绑定」按钮 + 左栏「仓库来源」第三行；面板里填令牌、选本地仓库、点「测试连接 / 绑定 / 推送到 GitHub / 拉我的仓库 / 解绑」。
 
+## 备份设置（面板顶栏「备份」→ 子视图）
+
+- 目的：把「设置镜像」和「一键拷贝」做成面板里的两个动作，并可选加一道许可密码。
+- 数据放 `reports/backup.json`：`{mirror, keep, password:{algo:'scrypt',salt,hash,keylen}, passwordMode:'set'|'none', lastRun, updatedAt}`。
+  - 密码用 `scryptSync(password, salt, 64)` + `timingSafeEqual` 校验；**只存哈希**。
+  - `passwordMode` 为空表示「还没回答过首次询问」，面板据此弹「要不要设密码」；选「不设密码」写 `'none'` 后不再问。
+- 要备份哪些仓：`reposRoot` 下的 `*.git` 裸仓 + `data.json` 里的 `repos[].path`（页面清单），按 basename 去重。
+- 「一键拷贝」（`runCopy`）对每个仓：
+  1. 目标 `I:\GitBackup\<名字>.git` 存在 → `git -C <src> push --mirror <target>`；不存在 → `git clone --mirror <src> <target>`；
+  2. `git -C <target> rev-parse --short HEAD` 回显镜像侧 HEAD；
+  3. `git -C <src> bundle create <mirror>/bundles/<名字>-<yyyymmdd-HHmmss>.bundle --all`，按名字前缀排序只留最近 `keep` 份（默认 10）。
+- 路由：`GET /version-history/backup.json`（状态 + 待备份仓库清单）、`POST /dsh-vh/backup`
+  （`set-password` / `clear-password` / `set-mirror` / `run` / `status`；同样是普通 handler 路由，因为 resource 路由只放行 GET）。
+- 许可密码的拦截在 **Host 侧**（`gate()`）：设了密码后 `set-mirror` / `run` 必须带 `password`，
+  否则回 `{ok:false, needPassword:true}` / `{ok:false, badPassword:true}`；客户端只是把它显示成人话。
+- 离线渲染：`node render-preview.mjs --backup`（`VH_BK_FRESH=1` 渲染「第一次询问」那版）。
+- 与定时任务的关系：`E:\Git\scripts\backup.ps1` 每天 21:00 仍独立跑（只管 `local.git`），
+  面板里这个按钮是**手动补一次**（覆盖全部项目仓）。
+
 ## 默认路径（lib/paths.js，可移植）
 
 代码里不写死个人绝对路径：根目录取 `DSH_VH_ROOT`，没设就用 `~/.dsh-version-history`，下面派生 `reports/` 与 `scripts/`。
@@ -96,6 +115,7 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 | `smartStatePath` | `reports/smart.state.json` |
 | `smartLogPath` | `reports/smart.log` |
 | `githubPath` | `reports/github.json` |
+| `backupPath` | `reports/backup.json` |
 | `dpapiScript` | `scripts/dpapi.ps1` |
 | `reposRoot` | `repos/`（`DSH_VH_REPOS_ROOT`） |
 | `gitExe` | `git`（走 PATH，`DSH_VH_GIT` 可换） |
