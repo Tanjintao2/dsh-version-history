@@ -3,6 +3,22 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.6
+
+- **自动备份到镜像**（「备份设置」里新增「自动备份」卡）：
+  - 两种节奏：`每天 HH:mm` 或 `每隔 N 分钟`（5–1440）；开关就是那个复选框。
+  - Host 侧每 60 秒 `tick()` 一次判断到点没（`dueNow()`），到点直接跑一次和
+    「一键拷贝」完全相同的 `runCopy({ auto: true })`；成功/失败写回
+    `backup.json` 的 `auto.lastRunAt` / `auto.lastOk`，面板上显示上次自动运行时间。
+  - **无人值守**：`auto` 触发时跳过许可密码校验（手动点按钮仍然要密码）。
+  - 启动后 15 秒补看一眼，赶上 DSH 关着时错过的「今天那次」；定时器 `unref()`，
+    不拖住宿主退出。**只在 DSH 开着时生效**，界面里写明了这点并提示用
+    Windows 计划任务做 7×24。
+  - `POST /dsh-vh/backup` 新增 `set-auto` 与 `tick` 两个 action；
+    `lib/backup.js` 新增 `setAuto` / `tick` / `dueNow`。
+  - `selftest-backup.mjs` 新增第 6 段：到点跑一次、同一天不重复跑、interval 到点、
+    关掉后不动。
+
 ## 0.1.5
 
 - **备份设置区块**（面板顶栏「备份」→ 子视图「备份设置」）：

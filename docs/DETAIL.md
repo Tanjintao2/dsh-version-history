@@ -96,6 +96,22 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 - 与定时任务的关系：`E:\Git\scripts\backup.ps1` 每天 21:00 仍独立跑（只管 `local.git`），
   面板里这个按钮是**手动补一次**（覆盖全部项目仓）。
 
+## 自动备份（「备份设置」里的「自动备份」卡，0.1.6）
+
+- 目的：把「一键拷贝」变成可以定时自动跑的动作，不依赖 Windows 计划任务、不要管理员权限。
+- 配置也在 `reports/backup.json` 的 `auto` 字段：
+  `{enabled, mode:'daily'|'interval', at:'HH:mm', minutes:5..1440, lastRunAt, lastOk, lastAuto, lastError?}`
+  —— 与手动那套共用同一条镜像目录与同一个 `runCopy`。
+- 调度在 **Host 侧**：`apply()` 里 `ctx.effect` 起 `setInterval(60s)`，每次 `cfg.bk.tick()`；
+  另开一个 15 s 的一次性 `setTimeout` 补跑「DSH 关着时错过的今天那次」；两个定时器都 `unref()`。
+- `dueNow(auto, now)` 判定：未启用 → 不跑；`interval` → `now - lastRunAt >= minutes`；
+  `daily` → 目标时刻（今天 HH:mm）已过且 `lastRunAt` 早于它 → 跑。
+- `tick()` 到点后调 `runCopy({ auto: true })`：**`auto` 触发跳过 `gate()`**（无人值守），
+  成功后把 `auto.lastRunAt / lastOk / lastAuto` 写回，并删掉旧的 `lastError`。
+- 路由：`POST /dsh-vh/backup` 增加 `set-auto`（要许可密码，因为属于「手动操作」）与 `tick`（调试用）。
+- 局限：**只在 DSH 进程活着时生效**；关机/退出后不会跑。要 7×24 就用 Windows「任务计划程序」另加。
+- 测试：`selftest-backup.mjs` 第 6 段用真 git 仓验证「到点跑一次 / 同一天不重复 / interval 到点 / 关掉不动」。
+
 ## 默认路径（lib/paths.js，可移植）
 
 代码里不写死个人绝对路径：根目录取 `DSH_VH_ROOT`，没设就用 `~/.dsh-version-history`，下面派生 `reports/` 与 `scripts/`。

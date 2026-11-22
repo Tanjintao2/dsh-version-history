@@ -95,6 +95,31 @@ result.status2 = await bk.status()
 result.clearToNone = await bk.setPassword({ mode: 'none' })
 result.status3 = await bk.status()
 
+// 6) 自动备份：到点跑、跑过就不再跑、关掉不动
+{
+  const past = new Date(Date.now() - 60 * 1000)
+  const hh = String(past.getHours()).padStart(2, '0')
+  const mm = String(past.getMinutes()).padStart(2, '0')
+  result.auto = {}
+  result.auto.setDaily = await bk.setAuto({ enabled: true, mode: 'daily', at: hh + ':' + mm })
+  result.auto.firstTick = await bk.tick()          // 今天这个点已过 → 应该跑
+  result.auto.secondTick = await bk.tick()         // 刚跑过 → 今天不再跑
+  result.auto.lastRunAt = (await bk.status()).auto.lastRunAt || ''
+  result.auto.lastOk = (await bk.status()).auto.lastOk === true
+
+  // interval 模式：把上次时间往前挪 10 分钟，5 分钟间隔就该到点
+  const st = await bk.read()
+  st.auto = Object.assign({}, st.auto, { enabled: true, mode: 'interval', minutes: 5, lastRunAt: new Date(Date.now() - 10 * 60000).toISOString() })
+  await writeFile(backupPath, JSON.stringify(st, null, 2), 'utf8')
+  result.auto.intervalTick = await bk.tick()
+  result.auto.intervalDue = await bk.dueNow({ enabled: true, mode: 'interval', minutes: 5, lastRunAt: new Date(Date.now() - 10 * 60000).toISOString() })
+
+  // 关掉之后 tick 不动
+  result.auto.setOff = await bk.setAuto({ enabled: false })
+  result.auto.offTick = await bk.tick()
+  result.autoOffReason = result.auto.offTick.reason
+}
+
 // 汇总
 result.ok = !!(
   result.setMirrorNoPw.ok
@@ -107,6 +132,14 @@ result.ok = !!(
   && result.gate.runNoPw.needPassword === true
   && result.status2.hasPassword === true
   && result.status3.passwordMode === 'none' && result.status3.hasPassword === false
+  && result.auto.setDaily.ok === true
+  && result.auto.firstTick.ran === true && result.auto.firstTick.ok === true
+  && result.auto.secondTick.ran === false
+  && result.auto.lastOk === true
+  && result.auto.intervalTick.ran === true
+  && result.auto.intervalDue.due === true
+  && result.auto.setOff.ok === true
+  && result.auto.offTick.ran === false
 )
 
 console.log(JSON.stringify(result, null, 2))
