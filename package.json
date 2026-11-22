@@ -1,9 +1,9 @@
 {
   "name": "dsh-version-history",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
-  "description": "GIT管理：本机 git 项目的版本历史 + 磁盘健康 + 局域网共享（DSH 侧边栏）",
+  "description": "GIT管理：本机 git 项目的版本历史面板 + 磁盘容量/SMART 健康 + 局域网共享 + GitHub 推送（DSH 侧边栏）",
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
