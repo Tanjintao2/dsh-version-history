@@ -3,6 +3,18 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.12
+
+- **修：重启 DSH 后面板全 404（「读取失败：HTTP 404」/「Unexpected end of JSON input」/「本地 0 个仓库 / GitHub 未绑定 / 没有磁盘数据」）**。
+  根因：`lib/index.js` 的 `apply()` 在入口就 `ctx.get('webServer')`，拿不到就 `return` ——
+  重启后插件加载顺序变化，`webServer` 常常晚于本插件就绪，于是**一条路由都没注册**（而插件本身
+  仍是 `enabled / active`，看起来完全正常）。
+- 改法：把路由注册包进 `mount(webServer)`；`apply()` 里拿到 `webServer` 就立刻 `mount`，
+  拿不到就 `ctx.inject(['webServer'], …)` 等它上线再 `mount`（两条路径都实测注册出
+  `exact:/dsh-vh/gh`、`exact:/dsh-vh/backup`、`prefix:/version-history`）。
+- 验收：重载后 `GET /version-history/health` 200（667 B，含全部路径）、
+  `/version-history/data.json` 200（65913 B）、`/version-history/disks.json` 200（9141 B）。
+
 ## 0.1.11
 
 - **面板加语言选择（中文 / English，默认中文）**：顶栏多一个下拉框，切换立即生效并把选择记在
