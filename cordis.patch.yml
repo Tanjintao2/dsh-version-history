@@ -1,7 +1,6 @@
+# 插件行。默认不写死任何路径：由 lib/paths.js 从 ~/.dsh-version-history 派生，
+# 需要用别处的脚本/数据时，在自己的 profile 补丁层覆盖 config（见 README「配置」）。
 - insert:
     - id: dsh-version-history
       name: dsh-version-history
-      config:
-        dataPath: 'E:\Git\reports\data.json'
-        reportPath: 'E:\Git\reports\版本历史.html'
-        scriptPath: 'E:\Git\scripts\visualize.ps1'
+      config: {}

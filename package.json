@@ -1,16 +1,17 @@
 {
   "name": "dsh-version-history",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "private": true,
   "type": "module",
   "description": "GIT管理：本机 git 项目的版本历史面板 + 磁盘容量/SMART 健康 + 局域网共享 + GitHub 推送（DSH 侧边栏）",
+  "license": "MIT",
   "exports": {
     ".": "./lib/index.js",
     "./client": "./lib/client.js",
     "./locale/*.json": "./locale/*.json",
     "./icon": "./icon.svg"
   },
-  "files": ["lib", "locale", "docs", "icon.svg", "cordis.patch.yml"],
+  "files": ["lib", "locale", "docs", "icon.svg", "cordis.patch.yml", "LICENSE"],
   "dsh": {
     "bundle": { "patch": "./cordis.patch.yml" },
     "client": { "platform": "web", "immediately": true }

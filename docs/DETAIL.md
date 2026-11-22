@@ -77,26 +77,30 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 - 路由：`GET /version-history/github.json`（只读状态）、`GET /version-history/github/test`；写操作（bind/unbind/test/push/repos）走 **`POST /dsh-vh/gh`**（普通 handler 路由，`kind:'exact'`，故意在 `/version-history` 前缀外 —— resource 路由只放行 GET）。
 - 客户端：better-sidebar 标签页 `version-history:github`（order 62）+ 主面板顶栏「GitHub / GitHub · 已绑定」按钮 + 左栏「仓库来源」第三行；面板里填令牌、选本地仓库、点「测试连接 / 绑定 / 推送到 GitHub / 拉我的仓库 / 解绑」。
 
-## 默认路径（可在 patch 行 config 里改）
+## 默认路径（lib/paths.js，可移植）
 
-| 配置 | 默认 |
+代码里不写死个人绝对路径：根目录取 `DSH_VH_ROOT`，没设就用 `~/.dsh-version-history`，下面派生 `reports/` 与 `scripts/`。
+优先级 **config > 环境变量 > 默认值**；`PATH_DEFAULTS` 见 `lib/paths.js`，环境变量清单见 README「配置」。
+
+| 配置 | 默认（相对根目录） |
 |---|---|
-| `dataPath` | `E:\Git\reports\data.json` |
-| `reportPath` | `E:\Git\reports\版本历史.html` |
-| `scriptPath` | `E:\Git\scripts\visualize.ps1` |
-| `reposPath` | `E:\Git\reports\repos.json` |
-| `healthPath` | `E:\Git\reports\health.json` |
-| `healthScript` | `E:\Git\scripts\disk-health.ps1` |
-| `smartPath` | `E:\Git\reports\smart.json` |
-| `smartScript` | `E:\Git\scripts\disk-health-admin.ps1` |
-| `smartLauncher` | `E:\Git\scripts\smart-launch.ps1` |
-| `smartStatePath` | `E:\Git\reports\smart.state.json` |
-| `smartLogPath` | `E:\Git\reports\smart.log` |
-| `lanPort` | `8788` |
-| `reposRoot` | `E:\Git\repos` |
-| `gitExe` | `E:\Git\tools\git\cmd\git.exe` |
-| `githubPath` | `E:\Git\reports\github.json` |
-| `dpapiScript` | `E:\Git\scripts\dpapi.ps1` |
+| `dataPath` | `reports/data.json` |
+| `reportPath` | `reports/history.html` |
+| `scriptPath` | `scripts/visualize.ps1` |
+| `reposPath` | `reports/repos.json` |
+| `healthPath` | `reports/health.json` |
+| `healthScript` | `scripts/disk-health.ps1` |
+| `smartPath` | `reports/smart.json` |
+| `smartScript` | `scripts/disk-health-admin.ps1` |
+| `smartLauncher` | `scripts/smart-launch.ps1` |
+| `smartStatePath` | `reports/smart.state.json` |
+| `smartLogPath` | `reports/smart.log` |
+| `githubPath` | `reports/github.json` |
+| `dpapiScript` | `scripts/dpapi.ps1` |
+| `reposRoot` | `repos/`（`DSH_VH_REPOS_ROOT`） |
+| `gitExe` | `git`（走 PATH，`DSH_VH_GIT` 可换） |
+| `lanPort` | `8788`（`DSH_VH_LAN_PORT`） |
+
 
 ## 加项目
 
