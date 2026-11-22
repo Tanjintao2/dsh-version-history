@@ -3,6 +3,14 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.8
+
+- **修「点 GitHub 管理会出右侧黑边」**：主面板顶栏（磁盘面板 / 局域网 / GitHub）与左栏来源卡的按钮
+  以前会顺手 `layout.openRightbar()` + `sb.openTab()`，右侧栏那一列被强制打开、而 tab 还没被
+  better-sidebar 选中渲染时就是一条空黑边。现在 `openView(name)` **只切主面板内的子视图**，
+  不再碰右侧栏（右侧栏的 tab 仍然注册着，用户自己把右列打开时可用）。
+- `selftest-panel.mjs` 的 `openDisks` 断言改成「不产生 openTab/openRightbar 调用，且子视图标题为 `← 返回磁盘`」。
+
 ## 0.1.7
 
 - **左栏仓库行自动标 GitHub 状态**：每行名下面一行给两个徽章 —— `本地`/`局域网`，

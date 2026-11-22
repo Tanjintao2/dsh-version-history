@@ -367,11 +367,20 @@ if (openReportBtn) {
   openReportBtn.props.onClick({ preventDefault() {}, target: null })
   result.openReport = opened.slice()
 }
-// 「磁盘面板」按钮应让 better-sidebar 打开对应 tab，并把右列打开
+// 「磁盘面板」按钮现在只切主面板内的子视图 —— **不再**强制打开右侧栏
+// （强制 openRightbar 会在 tab 未渲染时露出一条空黑边，用户实测过）。
 const openDisksBtn = buttons.find((b) => textOf(b).trim() === '磁盘面板')
 if (openDisksBtn) {
   openDisksBtn.props.onClick({ preventDefault() {}, target: null })
-  result.openDisks = { openedTabs: openedTabs.slice(), tabId: disksTab.id }
+  tree = await settle()
+  result.openDisks = {
+    openedTabs: openedTabs.slice(),
+    tabId: disksTab.id,
+    subbarTitle: byClass(tree, 'vh-subbar').map(textOf).join(''),
+  }
+  // 回到主视图，后面的断言仍在主面板上做
+  const backBtn = nodesOf(tree).filter((n) => n.type === 'button').find((b) => textOf(b).trim().indexOf('返回') >= 0)
+  if (backBtn) { backBtn.props.onClick({ preventDefault() {}, target: null }); tree = await settle() }
 }
 
 // add-repo flow: type a path, press the 加入 button, expect /repos/add then /refresh
