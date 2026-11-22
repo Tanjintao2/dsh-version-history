@@ -286,7 +286,7 @@ ${css}
 writeFileSync(out, html, 'utf8')
 console.log(JSON.stringify({
   out,
-  mode: panelMode ? 'panel' : (lanMode ? 'lan' : (githubMode ? 'github' : 'disks')),
+  mode: panelMode ? 'panel' : (lanMode ? 'lan' : (githubMode ? 'github' : (backupMode ? 'backup' : 'disks'))),
   bytes: Buffer.byteLength(html, 'utf8'),
   cards: (body.match(/class="vh-card"/g) || []).length,
   risks: (body.match(/vh-risk (ok|warn|bad)/g) || []).slice(0, 6),

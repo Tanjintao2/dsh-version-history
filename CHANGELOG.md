@@ -3,6 +3,13 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.10
+
+- **README 补备份设置页截图** `docs/screenshots/panel-backup.png`（密码 / 镜像目录 + 保留份数 /
+  自动备份卡 / 一键拷贝的四仓明细与耗时），同样由 `render-preview.mjs --backup` 渲染真实组件树后截取。
+- `render-preview.mjs` 的 JSON 输出补 `mode: "backup"` 分支 —— 以前 `--backup` 也能渲染真页面，
+  但回执里 `mode` 会误报成 `disks`，排查时容易误判成「没接」。
+
 ## 0.1.9
 
 - **README 增补「从 Release 的 tarball 安装」**（方式 A）：下载 `dsh-version-history-<版本>.tgz`

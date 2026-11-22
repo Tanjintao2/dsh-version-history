@@ -6,6 +6,8 @@ DeepSeek Harness（DSH）侧边栏插件：把本机 git 仓的**版本变化**�
 
 ![GitHub 绑定卡片](docs/screenshots/panel-github.png)
 
+![备份设置：镜像目录 / 自动备份 / 一键拷贝](docs/screenshots/panel-backup.png)
+
 - 侧边栏入口 `GIT管理`（`sidebar.panellist` id `version-history`，order 21）；主面板三栏 —— 左「仓库 / 版本」、中「提交明细」、右「磁盘」。
 - 顶栏按钮：`重新生成` / `磁盘面板` / `局域网` / `GitHub` / `备份` / `新标签打开` —— 其中「磁盘面板 / 局域网 / GitHub」会**先在面板内切子视图**（带「← 返回」），同时尽量把右侧栏那一页也打开。
 - **备份**：面板内「备份设置」区块 —— 设镜像目录 + 一键拷贝（镜像并打 bundle），可加一道许可密码（scrypt 哈希，首次打开问一次，也可以选择不设）。
@@ -19,7 +21,7 @@ DeepSeek Harness（DSH）侧边栏插件：把本机 git 仓的**版本变化**�
 每个版本都挂了 `dsh-version-history-<版本>.tgz` 附件，是 **npm 布局**（包根在 `package/`），所以既能给 DSH 装，也能给 npm/pnpm 装。
 
 ```powershell
-$ver = '0.1.9'   # 换成你要的版本
+$ver = '0.1.10'   # 换成你要的版本
 $url = "https://github.com/Tanjintao2/dsh-version-history/releases/download/v$ver/dsh-version-history-$ver.tgz"
 $tmp = Join-Path $env:TEMP "dsh-vh-$ver"
 
