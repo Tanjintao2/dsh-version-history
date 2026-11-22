@@ -3,6 +3,7 @@
 DSH 侧边栏插件：把本机几个 git 仓的**版本变化**、**磁盘健康**、**局域网共享**、**GitHub 推送**收在一个面板里。
 
 - 侧边栏入口：`GIT管理`（`sidebar.panellist` id `version-history`，order 21）；主面板三栏 —— 左「项目 / 版本」、中「明细」、右「磁盘」。
+- 左栏顶部「仓库来源」卡：本地 / 局域网 / GitHub 三行状态（绿点=在线/已绑定），下面**「仓库位置（N）」列清单**——每个仓显示「本 / 局」标签 + 仓库名 + 路径（长路径留尾显示，悬停看全文），右上角「收起 / 展开」可折叠。
 - 数据源：`E:\Git\reports\data.json`（由 `E:\Git\scripts\visualize.ps1` 生成）、`health.json`（`disk-health.ps1`）、`smart.json`（`disk-health-admin.ps1`，提权）、`repos.json`（仓清单）、`github.json`（绑定配置，令牌 DPAPI 加密）。
 - Host half 路由（前缀 `/version-history`）：`health`、`data.json`、`report`、`refresh`、`repos*`、`disks.json`、`disks/scan`、`smart.json`、`smart.state.json`、`smart.log`、`smart/scan`、`lan.json`、`lan/start|stop|firewall`；写操作走 `POST /dsh-vh/gh`（resource 路由只放行 GET，所以单开一条普通 handler 路由）。
 

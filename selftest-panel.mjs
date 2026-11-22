@@ -298,6 +298,13 @@ result.sourceCard = {
   }),
   miniButtons: byClass(tree, 'vh-mini').map(textOf),
 }
+// 左栏「仓库来源」卡里的仓库位置清单（名称 + 路径 + 本地/局域网标签）
+result.sourceItems = byClass(tree, 'vh-src-item').map((it) => ({
+  name: byClass(it, 'vh-src-n').map(textOf).join(''),
+  path: byClass(it, 'vh-src-p').map(textOf).join(''),
+  tag: byClass(it, 'vh-src-tag').map(textOf).join(''),
+  tagClass: byClass(it, 'vh-src-tag').map((t) => t.props.className).join(' '),
+}))
 result.repoRows = byClass(tree, 'vh-grp-h').map((g) => ({
   name: textOf(g).replace(/\s+/g, ' ').trim().slice(0, 40),
   tag: byClass(g, 'vh-tag').map(textOf),
