@@ -112,6 +112,20 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 - 局限：**只在 DSH 进程活着时生效**；关机/退出后不会跑。要 7×24 就用 Windows「任务计划程序」另加。
 - 测试：`selftest-backup.mjs` 第 6 段用真 git 仓验证「到点跑一次 / 同一天不重复 / interval 到点 / 关掉不动」。
 
+## GitHub 状态自动标记（左栏仓库行，0.1.7）
+
+- 左栏每个仓库行是三行结构：`名称 + 提交/版数 + ✕` → `本地|局域网 徽章 + GitHub 徽章` → 完整路径。
+- GitHub 徽章的数据在 **Host 侧**算，随 `/version-history/data.json` 一起下发（`repos[].github`）：
+  - `parseGithubRemote(url)` 只认 `github.com` 形态（`https://`、`git@`、`ssh://`）。
+  - 有 origin 且是 github：`git rev-parse HEAD` 与 `git ls-remote --heads <url> refs/heads/<branch>` 各取短 sha；
+    用 `git cat-file -e <remoteSha>` 判本地有没有这个对象（没有 → `unknown`），
+    再 `git merge-base --is-ancestor` 判祖先关系 + `git rev-list --count` 数差多少：
+    `synced` / `ahead` / `behind` / `diverged` / `unpublished`（远端没有该分支）/ `unknown`。
+  - 结果按仓库路径缓存 **180 s**（`GH_TTL`、`ghCache`），失败静默（`github: null`，徽章不显示）。
+- 徽章文案：`GitHub 已同步` / `GitHub 领先 N` / `GitHub 落后 N` / `GitHub 分叉` / `GitHub 未推送`；
+  `title` 里给 owner/repo、分支、本地/远端短 sha、检查时间。
+- 局限：只看 `origin` 一个远端；`ls-remote` 要能连上 GitHub（断网/代理不通时不出徽章，不是「已同步」的假象）。
+
 ## 默认路径（lib/paths.js，可移植）
 
 代码里不写死个人绝对路径：根目录取 `DSH_VH_ROOT`，没设就用 `~/.dsh-version-history`，下面派生 `reports/` 与 `scripts/`。

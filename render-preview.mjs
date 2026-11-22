@@ -26,7 +26,7 @@ const out = args.find((a) => !a.startsWith('--')) ||
 
 const src = readFileSync(join(here, 'lib', 'client.js'), 'utf8')
 const health = JSON.parse(readFileSync(process.env.VH_HEALTH || 'E:/Git/reports/health.json', 'utf8'))
-const data = JSON.parse(readFileSync('E:/Git/reports/data.json', 'utf8'))
+const data = JSON.parse(readFileSync(process.env.VH_DATA || 'E:/Git/reports/data.json', 'utf8'))
 
 let hooks = []
 let cursor = 0

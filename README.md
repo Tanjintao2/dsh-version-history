@@ -9,6 +9,7 @@ DeepSeek Harness（DSH）侧边栏插件：把本机 git 仓的**版本变化**�
 - 侧边栏入口 `GIT管理`（`sidebar.panellist` id `version-history`，order 21）；主面板三栏 —— 左「仓库 / 版本」、中「提交明细」、右「磁盘」。
 - 顶栏按钮：`重新生成` / `磁盘面板` / `局域网` / `GitHub` / `备份` / `新标签打开` —— 其中「磁盘面板 / 局域网 / GitHub」会**先在面板内切子视图**（带「← 返回」），同时尽量把右侧栏那一页也打开。
 - **备份**：面板内「备份设置」区块 —— 设镜像目录 + 一键拷贝（镜像并打 bundle），可加一道许可密码（scrypt 哈希，首次打开问一次，也可以选择不设）。
+- **GitHub 状态自动标记**：左栏每个仓库行名下面一行是徽章 —— `本地`/`局域网` + `GitHub 已同步` / `GitHub 领先 N` / `GitHub 落后 N` / `GitHub 未推送` / `GitHub 分叉`。自动探测：`origin` 是不是 github.com、远端同名分支 sha 与本地 HEAD 的关系（Host 侧算，3 分钟缓存，没联网就静默不显示）。
 - 纯前端 fetch 本包 Host half 的同源路由取数，不拉 iframe（能吃到 DSH 的主题变量与 locale）。
 
 ## 安装
@@ -41,6 +42,22 @@ DeepSeek Harness（DSH）侧边栏插件：把本机 git 仓的**版本变化**�
    - 上次自动运行时间与成功/失败会显示在这张卡上（`backup.json` 的 `auto.lastRunAt` / `auto.lastOk`）。
 
 > 每天 21:00 的计划任务（外部 `backup.ps1`）仍然独立运行；面板里这个按钮是**手动补一次**，覆盖全部项目仓。
+
+### 每天 21:00 的那个 Windows 计划任务（也覆盖全部仓库）
+
+`GitBackup-Local`（任务计划程序，每天 21:00）现在跑的是 **`E:\Git\scripts\backup-all.ps1`**：
+读 `E:\Git\reports\repos.json` 加上 `E:\Git\repos\*.git` 去重，逐仓 `push --mirror`（没有就 `clone --mirror`）
++ `bundle create --all`，bundle 按名字轮转保留最近 `-Keep`（默认 10）份，日志 `I:\GitBackup\logs\backup-all.log`，
+最后跑一次 `visualize.ps1 -NoOpen` 刷新页面（面板与离线页读同一份 `data.json`）。
+
+```powershell
+# 手动跑一次（不开页面）
+powershell -NoProfile -ExecutionPolicy Bypass -File E:\Git\scripts\backup-all.ps1
+# 只看会做什么
+powershell -NoProfile -ExecutionPolicy Bypass -File E:\Git\scripts\backup-all.ps1 -DryRun
+```
+
+> 面板里的「自动备份」是**DSH 进程内**的定时器（只在 DSH 开着时生效）；21:00 这条是系统级任务，关机不跑但开机后按计划继续，两者互不冲突。
 
 ## 配置（可移植）
 

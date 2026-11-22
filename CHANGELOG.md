@@ -3,6 +3,21 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.7
+
+- **左栏仓库行自动标 GitHub 状态**：每行名下面一行给两个徽章 —— `本地`/`局域网`，
+  外加 `GitHub 已同步` / `GitHub 领先 N` / `GitHub 落后 N` / `GitHub 未推送` / `GitHub 分叉`。
+  实现：Host 侧在 `GET /version-history/data.json` 时给每个 repo 贴 `github` 字段 ——
+  `git remote get-url origin` 判是不是 github.com，再 `git ls-remote --heads <url> refs/heads/<branch>`
+  拿远端 sha 与本地 HEAD 比对（能比祖先关系就用 `merge-base --is-ancestor` 判 ahead/behind，
+  并用 `rev-list --count` 数差多少提交）。结果按仓库路径缓存 3 分钟，失败静默（不显示徽章）。
+- **每日备份扩到全部仓库**：新增 `E:\Git\scripts\backup-all.ps1`（PowerShell 版 `runCopy`）——
+  读 `repos.json` + `reposRoot\*.git` 去重，逐仓 `push --mirror`（没有就 `clone --mirror`）+
+  `bundle create --all` 到 `<mirror>/bundles/<名字>-<时间戳>.bundle` 并按 `-Keep`（默认 10）轮转，
+  日志 `I:\GitBackup\logs\backup-all.log`，最后顺带跑 `visualize.ps1 -NoOpen` 刷新页面。
+  计划任务 `GitBackup-Local`（每天 21:00）已改成调它 —— 以前只备份 `local.git`，现在覆盖四个仓。
+- `render-preview.mjs` 支持 `VH_DATA` 指定 data 文件（想把 Host 侧装饰后的数据拿去渲染预览时用）。
+
 ## 0.1.6
 
 - **自动备份到镜像**（「备份设置」里新增「自动备份」卡）：
