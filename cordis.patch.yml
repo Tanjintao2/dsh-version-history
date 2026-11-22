@@ -1,0 +1,7 @@
+- insert:
+    - id: dsh-version-history
+      name: dsh-version-history
+      config:
+        dataPath: 'E:\Git\reports\data.json'
+        reportPath: 'E:\Git\reports\版本历史.html'
+        scriptPath: 'E:\Git\scripts\visualize.ps1'

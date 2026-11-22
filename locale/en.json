@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Git Manager (dsh-version-history)",
+    "description": "Git manager in the sidebar: version history of local git projects (what each release changed, line counts, commits), disk capacity and SMART health, and LAN repo sharing. Regenerate with one click.",
+    "detail": "docs/DETAIL.md"
+  }
+}

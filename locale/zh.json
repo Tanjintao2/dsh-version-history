@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "GIT管理 (dsh-version-history)",
+    "description": "侧边栏里的 GIT 管理台：本机多个 git 项目的版本历史（每版相对上一版改了哪些文件、增删行数、包含哪些提交）、磁盘容量与 SMART 健康、局域网共享仓库；可一键重新生成。",
+    "detail": "docs/DETAIL.md"
+  }
+}

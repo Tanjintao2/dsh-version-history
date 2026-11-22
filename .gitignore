@@ -1,0 +1,5 @@
+# 生成物（预览页 / 自测输出）不入库，需要时现跑
+preview-*.html
+selftest-out*.json
+node_modules/
+*.log
