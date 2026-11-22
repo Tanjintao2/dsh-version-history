@@ -14,6 +14,41 @@ DeepSeek Harness（DSH）侧边栏插件：把本机 git 仓的**版本变化**�
 
 ## 安装
 
+### 方式 A：从 Release 的 tarball 安装（推荐，不需要 clone）
+
+每个版本都挂了 `dsh-version-history-<版本>.tgz` 附件，是 **npm 布局**（包根在 `package/`），所以既能给 DSH 装，也能给 npm/pnpm 装。
+
+```powershell
+$ver = '0.1.9'   # 换成你要的版本
+$url = "https://github.com/Tanjintao2/dsh-version-history/releases/download/v$ver/dsh-version-history-$ver.tgz"
+$tmp = Join-Path $env:TEMP "dsh-vh-$ver"
+
+New-Item -ItemType Directory -Force $tmp | Out-Null
+Invoke-WebRequest $url -OutFile (Join-Path $tmp 'pkg.tgz')
+
+# 解包 → 得到 <tmp>\package\（Windows 10/11 自带 tar）
+tar -xzf (Join-Path $tmp 'pkg.tgz') -C $tmp
+```
+
+然后交给 DSH 装（`plugin_manager` 收目录，不认 .tgz 本身）：
+
+```
+plugin_manager: action=install_bundle, target=<tmp>\package
+plugin_manager: action=set_plugin,   target="include:dsh-version-history", enabled=false
+plugin_manager: action=set_plugin,   target="include:dsh-version-history", enabled=true
+```
+
+- `install_bundle` 会把包复制进 `<DSH_HOME>\profiles\<profile>\node_modules\dsh-version-history\`，并在该 profile 的补丁层写一行。
+- `set_plugin false → true` 只是让 **host half** 重新 import；**client half 改动要刷新 DSH 窗口**（或重启）才换 JS。
+- 装完侧边栏应出现 `GIT管理`；自检：`GET http://127.0.0.1:<DSH 端口>/version-history/health` 返回 `{"ok":true, ...}`，里面列的就是**这次真正生效的路径**（对不上说明 profile 补丁层有覆盖）。
+
+**怎么确认装的是哪个版本**：看已装目录 `node_modules\dsh-version-history\package.json` 的 `"version"`（`/version-history/health` 不回版本号，只回路径）。
+
+> 想钉旧版本就把 `$ver` 改成 `0.1.4` 之类；Release 附件长期保留。
+> 有 npm 的环境也可以直接 `npm i <下载下来的 .tgz>`（只是装进普通 node_modules，不会自动注册到 DSH）。
+
+### 方式 B：从源码目录安装（开发/改名改代码时用）
+
 ```powershell
 # 装（给本目录绝对路径）
 #   plugin_manager: action=install_bundle, target=<本目录>
@@ -21,6 +56,10 @@ DeepSeek Harness（DSH）侧边栏插件：把本机 git 仓的**版本变化**�
 #   plugin_manager: action=set_plugin, target="include:dsh-version-history", enabled=false → true
 # 改完 client half：DSH 窗口刷新页面
 ```
+
+### 装完要配的（可选）
+
+插件默认从 `~/.dsh-version-history` 派生所有路径，**开箱即用**；若你的脚本/报告在别处（例如 `E:\Git\scripts`、`E:\Git\reports`），按下面「配置（可移植）」那节在自己的 profile 补丁层覆盖，不要改包内文件。
 
 ## 备份（镜像 / 一键拷贝 / 许可密码）
 

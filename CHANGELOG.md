@@ -3,6 +3,16 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.9
+
+- **README 增补「从 Release 的 tarball 安装」**（方式 A）：下载 `dsh-version-history-<版本>.tgz`
+  → `tar -xzf` 解出 `package/` → `plugin_manager install_bundle target=<package 目录>` →
+  `set_plugin false → true` 重载 host half。另附「怎么确认装的是哪个版本」
+  （看已装目录 `package.json` 的 `version`；`/version-history/health` 只回生效路径、不回版本号）。
+- **README 截图更新到当前界面**：`docs/screenshots/panel-main.png`（三栏 + 磁盘列，
+  顶栏此时已有 `备份`、`GitHub · 已绑定`，左栏仓库行带 `GitHub 已同步` 徽章）、
+  `panel-github.png`（GitHub 绑定卡片）。两张都由 `render-preview.mjs` 渲染真实组件树后截取。
+
 ## 0.1.8
 
 - **修「点 GitHub 管理会出右侧黑边」**：主面板顶栏（磁盘面板 / 局域网 / GitHub）与左栏来源卡的按钮
