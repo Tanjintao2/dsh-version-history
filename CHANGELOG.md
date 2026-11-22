@@ -3,6 +3,21 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.11
+
+- **面板加语言选择（中文 / English，默认中文）**：顶栏多一个下拉框，切换立即生效并把选择记在
+  `localStorage['dsh-vh-lang']`，下次打开还是上次那个语言。
+- 实现方式：`client.js` 里包了一层 `h()`（内部转 `React.createElement`）——英文模式下它会把
+  字符串子节点与 `title` / `placeholder` / `aria-label` 等文案属性过一遍 `tx()`：先查整串字典
+  `EN`，再按顺序试 `RULES` 正则（`N 个仓库`、`N 提交 · M 版`、`剩余 x / y · 已用 n%` 这类带数字的
+  碎片），最后对 `1 commits` 这类做单复数修正。**中文模式完全不走这条路径**（`h()` 直接透传），
+  所以默认行为与 0.1.10 逐字节一致。
+- 未覆盖的只有「数据本身」——仓库名、路径、提交信息、卷标（如 `文档` / `新加卷`）保持原样。
+- 自测：`selftest-panel.mjs` 新增 `english` 段（用 stub `localStorage` 重新加载模块后渲染），
+  断言标题 `Git Manager`、按钮 `Regenerate / Disk panel / LAN / Backup / Open in new tab`、
+  左栏 `Repository sources`、标签 `Local`，并且整棵树里不再出现 `GIT管理`；
+  `render-preview.mjs` 支持 `VH_LANG=en` 出英文预览。
+
 ## 0.1.10
 
 - **README 补备份设置页截图** `docs/screenshots/panel-backup.png`（密码 / 镜像目录 + 保留份数 /

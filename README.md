@@ -13,6 +13,8 @@ DeepSeek Harness（DSH）侧边栏插件：把本机 git 仓的**版本变化**�
 - **备份**：面板内「备份设置」区块 —— 设镜像目录 + 一键拷贝（镜像并打 bundle），可加一道许可密码（scrypt 哈希，首次打开问一次，也可以选择不设）。
 - **GitHub 状态自动标记**：左栏每个仓库行名下面一行是徽章 —— `本地`/`局域网` + `GitHub 已同步` / `GitHub 领先 N` / `GitHub 落后 N` / `GitHub 未推送` / `GitHub 分叉`。自动探测：`origin` 是不是 github.com、远端同名分支 sha 与本地 HEAD 的关系（Host 侧算，3 分钟缓存，没联网就静默不显示）。
 - 纯前端 fetch 本包 Host half 的同源路由取数，不拉 iframe（能吃到 DSH 的主题变量与 locale）。
+- **界面语言**：顶栏右侧的下拉框切 `中文` / `English`，默认中文；选择记在浏览器 `localStorage['dsh-vh-lang']`。
+  英文模式只翻界面文案（字典 + 带数字的规则），`1 commits` 这类会改成单数；仓库名、路径、提交信息、卷标等**数据**保持原样。
 
 ## 安装
 

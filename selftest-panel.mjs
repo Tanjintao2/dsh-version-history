@@ -586,6 +586,53 @@ if (githubTab) {
   }
 }
 
+// ---- 英文模式：换一份 localStorage 重新加载模块，断言顶栏/按钮/左栏都变成英文 ----
+{
+  const store = { 'dsh-vh-lang': 'en' }
+  globalThis.localStorage = {
+    getItem: (k) => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v) },
+    removeItem: (k) => { delete store[k] },
+  }
+  new Function('window', 'require', src)(globalThis, req)
+  const modEn = globalThis.__mod.factory(req)
+  let PanelEn = null
+  const ctxEn = {
+    slots: {
+      inject(_key, cb) { cb() },
+      register(options, component) {
+        if (options && options.name === 'main') PanelEn = component
+        return () => {}
+      },
+    },
+    effect(cb) {
+      const d = cb()
+      return typeof d === 'function' ? d : () => {}
+    },
+    on: () => () => {},
+    get: (name) => (name === 'betterSidebar' ? betterSidebar : (name === 'layout' ? layout : undefined)),
+  }
+  modEn.apply(ctxEn)
+
+  hooks = []
+  const treeEn = PanelEn ? await settle(PanelEn) : null
+  const allEn = treeEn ? textOf(treeEn) : ''
+  const btnEn = treeEn ? nodesOf(treeEn).filter((n) => n.type === 'button').map((b) => textOf(b).trim()) : []
+  const langSel = treeEn ? nodesOf(treeEn).filter((n) => n.type === 'select').map((s) => (s.children || []).map(textOf).join('|')) : []
+  result.english = {
+    available: !!PanelEn,
+    title: treeEn ? byClass(treeEn, 'vh-title').map(textOf) : [],
+    buttons: btnEn.slice(0, 8),
+    langOptions: langSel,
+    hasEnglishText: /Git Manager/.test(allEn) && /Disk panel|Regenerate/.test(allEn),
+    noChineseTitle: allEn.indexOf('GIT管理') < 0,
+    sourceHeader: treeEn ? byClass(treeEn, 'vh-src-h').map(textOf) : [],
+    repoTag: treeEn ? byClass(treeEn, 'vh-tag').map(textOf).slice(0, 4) : [],
+    sample: allEn.replace(/\s+/g, ' ').slice(0, 160),
+  }
+  delete globalThis.localStorage
+}
+
 console.log(JSON.stringify(result, null, 2))
 // 组件里可能留下 150 s 的兜底 setTimeout，测试结束直接退出，别让 node 干等。
 process.exit(0)

@@ -112,6 +112,20 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 - 局限：**只在 DSH 进程活着时生效**；关机/退出后不会跑。要 7×24 就用 Windows「任务计划程序」另加。
 - 测试：`selftest-backup.mjs` 第 6 段用真 git 仓验证「到点跑一次 / 同一天不重复 / interval 到点 / 关掉不动」。
 
+## 界面语言（0.1.11）
+
+- 顶栏右侧 `<select class="vh-lang">`：`中文`（默认）/ `English`；选中值写 `localStorage['dsh-vh-lang']`，
+  模块加载时读回来，切完立刻重渲染（`LANG` 是模块级变量）。
+- 翻译在**元素创建处**做，不在渲染后改 DOM：`client.js` 用 `h0 = React.createElement` 保存原生实现，
+  再定义 `h(type, props, ...kids)` —— `LANG === 'zh'` 时原样透传（与旧版等价），`'en'` 时才把
+  字符串子节点与 `title` / `placeholder` / `aria-label` / `alt` / `data-tip` / `label` 过 `tx()`。
+- `tx(s)` 顺序：`· ` 前缀递归 → 整串字典 `EN` → 正则表 `RULES`（`N 个仓库`、`N 提交 · M 版`、
+  `剩余 x / y · 已用 n%`、`1%（0% = 全新）`、`40°C（峰值 90°C）`、`稳定 N` / `注意 N` / `风险 N` 等）
+  → `carry()` 做 `1 commits` → `1 commit` 的单复数修正。查不到就原样返回（宁可留中文，不改数据）。
+- 不翻**数据**：仓库名、路径、提交信息、卷标（`文档` / `新加卷`）、sha、型号。
+- 测试：`selftest-panel.mjs` 末尾 `english` 段用 stub `localStorage` 重新 `new Function` 加载模块后渲染面板；
+  `render-preview.mjs` 支持 `VH_LANG=en`（例：`VH_LANG=en node render-preview.mjs --panel preview-main-en.html`）。
+
 ## GitHub 状态自动标记（左栏仓库行，0.1.7）
 
 - 左栏每个仓库行是三行结构：`名称 + 提交/版数 + ✕` → `本地|局域网 徽章 + GitHub 徽章` → 完整路径。

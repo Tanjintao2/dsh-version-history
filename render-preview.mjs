@@ -161,6 +161,15 @@ globalThis.fetch = (url) => {
 }
 globalThis.window = globalThis
 globalThis.window.open = () => null
+// VH_LANG=en 时以英文渲染（client.js 从 localStorage 的 dsh-vh-lang 读语言）
+if (process.env.VH_LANG) {
+  const store = { 'dsh-vh-lang': process.env.VH_LANG }
+  globalThis.localStorage = {
+    getItem: (k) => (k in store ? store[k] : null),
+    setItem: (k, v) => { store[k] = String(v) },
+    removeItem: (k) => { delete store[k] },
+  }
+}
 globalThis.__ModuleLoader__ = { load(mod) { globalThis.__mod = mod } }
 
 new Function('window', 'require', src)(globalThis, req)
