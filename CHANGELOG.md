@@ -3,6 +3,23 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.15
+
+- **「禁止推送」锁（默认关）**：「备份设置」新增「推送保护」卡。锁上以后，Host 侧在
+  `POST /dsh-vh/gh` 里拦截 `push` / `publish`，直接返回 **423** 与一段说明，远端什么都收不到；
+  解锁就恢复。这个开关**不校验许可密码**（否则忘了密码就永远解不开）。
+  - `lib/backup.js`：`status()` 多回 `pushLock`，新增 `setPushLock({ locked })`。
+  - `lib/index.js`：`POST /dsh-vh/backup` 新增 `set-push-lock`；`/dsh-vh/gh` 在 `push`/`publish` 前查锁。
+- **右键推送前确认**：仓库有未提交改动、或还没有任何版本标签时，右键「推送到私有/公开仓库」不再直接推，
+  先弹一个确认框列出原因（「有 N 处未提交改动」「还没有任何版本标签」），点「仍然推送」才真推。
+  没有这类情况时维持原来的一键直推。
+  - `lib/client.js`：`publishWarnings()` / `publishRepo()`（先判后弹）/ `doPublish()`（真正执行），
+    新增 `.vh-confirm*` 样式与 `仍然推送` 按钮；中英文文案都补齐。
+- 自测：`selftest-panel.mjs` 新增 `confirmPush` 断言（先弹框、确认前没有任何 `POST /dsh-vh/gh`、
+  确认后才出现）；`selftest-backup.mjs` 新增 `pushLock` 开/关往返断言。两个脚本 exit 0。
+- 实测：锁着时 `publish` → `423 {"ok":false,"locked":true,...}`；解锁后同样请求 → `ok:true`、5.2 s、
+  `created:false`（仓库已存在）、`origin:keep`。
+
 ## 0.1.14
 
 - **文档截图与示例路径全面脱敏**（发布的图片和文字里不再带本机信息）：

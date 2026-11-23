@@ -158,6 +158,21 @@ disk-health-admin.ps1  ──►  D:\reports\smart.json        （管理员）
   6. 成功后写回绑定信息与 `lastPush`，前端弹提示并 `loadData() + loadGh()` 刷新徽章。
 - 自测：`selftest-panel.mjs` 的 `contextMenu` 段；预览：`VH_MENU=1 node render-preview.mjs --panel preview-main-menu.html`。
 
+## 推送保护（0.1.15）
+
+- **锁**：`reports/backup.json` 的 `pushLock`（默认 `false`）。`POST /dsh-vh/backup {action:'set-push-lock', locked}`
+  改它；`GET /version-history/backup.json` 回显。**不校验许可密码**——忘了密码也得能解开。
+- **拦截点**：`lib/index.js` 的 `POST /dsh-vh/gh`，在 `push` / `publish` 之前：
+  `cfg.bk.status().pushLock === true` → 回 `423 {ok:false, locked:true, err:'推送已被「禁止推送」锁关闭…'}`，
+  不进入 `cfg.gh.push/publish()`，所以远端收不到任何对象。
+- **前端**：`BackupPanel` 的「推送保护」卡（`protectCard`）：复选框直接调 `saveLock(next)` →
+  `bkPost({action:'set-push-lock'})` → `take()` 提示 + `load()`。文案同时进 `EN` 字典。
+- **右键推送前确认**：`publishWarnings(r)` 收集 `r.dirty > 0`（「有 N 处未提交改动」）与
+  `!(r.versions||[]).length`（「还没有任何版本标签」）；有警告时 `publishRepo()` 只 `setConfirmPush({repo,visibility,warns})`，
+  渲染 `.vh-confirm`（标题 + 仓库/可见性 + 警告列表 + 「取消」/「仍然推送」）；点「仍然推送」才走 `doPublish()`。
+- 自测：`selftest-panel.mjs` 的 `confirmPush` 段（先弹框 → 确认前 `POST /dsh-vh/gh` 一次都不发 → 确认后才发）；
+  `selftest-backup.mjs` 的 `pushLock` 段（开/关往返）。
+
 ## 默认路径（lib/paths.js，可移植）
 
 代码里不写死个人绝对路径：根目录取 `DSH_VH_ROOT`，没设就用 `~/.dsh-version-history`，下面派生 `reports/` 与 `scripts/`。

@@ -351,7 +351,44 @@ result.repoPaths = byClass(tree, 'vh-repo-path').map(textOf)
   }
 }
 
-// disk capacity chips: drive letter, role, free/total, usage bar
+// 推送前确认：仓有未提交改动 / 没标签时，先弹确认框，确认后才真的 POST /dsh-vh/gh
+{
+  const savedDirty = data.repos[0].dirty
+  const savedVersions = data.repos[0].versions
+  data.repos[0].dirty = 3
+  data.repos[0].versions = []
+  hooks = []
+  let ct = await settle(panel)
+  const cheads = byClass(ct, 'vh-grp-h')
+  if (cheads.length && cheads[0].props.onContextMenu) {
+    cheads[0].props.onContextMenu({ preventDefault() {}, stopPropagation() {}, clientX: 60, clientY: 200 })
+    ct = await settle()
+    const before = fetchCalls.length
+    const priv = byClass(ct, 'vh-menu-i').find((b) => textOf(b).indexOf('推送到私有仓库') >= 0)
+    if (priv) priv.props.onClick({ preventDefault() {}, target: null })
+    ct = await settle()
+    const confirmBox = byClass(ct, 'vh-confirm')[0] || null
+    const callsAfterAsk = fetchCalls.slice(before).map((c) => c.method + ' ' + c.url)
+    const btnConfirm = byClass(ct, 'vh-btn').find((b) => textOf(b).indexOf('仍然推送') >= 0)
+    if (btnConfirm) btnConfirm.props.onClick({ preventDefault() {}, target: null })
+    ct = await settle()
+    result.confirmPush = {
+      asked: !!confirmBox,
+      title: confirmBox ? textOf(byClass(confirmBox, 'vh-confirm-h')[0] || {}) : '',
+      warns: confirmBox ? byClass(confirmBox, 'vh-confirm-list').map(textOf) : [],
+      callsBeforeConfirm: callsAfterAsk,
+      callsAfterConfirm: fetchCalls.slice(before).map((c) => c.method + ' ' + c.url),
+      closedAfterConfirm: byClass(ct, 'vh-confirm').length === 0,
+    }
+  } else {
+    result.confirmPush = { asked: false, reason: 'no group header' }
+  }
+  data.repos[0].dirty = savedDirty
+  data.repos[0].versions = savedVersions
+  hooks = []
+  tree = await settle(panel)
+}
+
 const diskChips = byClass(tree, 'vh-disk')
 result.disks = {
   count: diskChips.length,

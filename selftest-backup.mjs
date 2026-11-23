@@ -120,6 +120,15 @@ result.status3 = await bk.status()
   result.autoOffReason = result.auto.offTick.reason
 }
 
+// 推送锁（默认关；开/关往返都应正确回显，且不需要许可密码）
+result.pushLock = {
+  initial: (await bk.status()).pushLock,
+  setOn: await bk.setPushLock({ locked: true }),
+  afterOn: (await bk.status()).pushLock,
+  setOff: await bk.setPushLock({ locked: false }),
+  afterOff: (await bk.status()).pushLock,
+}
+
 // 汇总
 result.ok = !!(
   result.setMirrorNoPw.ok
@@ -140,7 +149,10 @@ result.ok = !!(
   && result.auto.intervalDue.due === true
   && result.auto.setOff.ok === true
   && result.auto.offTick.ran === false
-)
+  && result.pushLock.initial !== true
+  && result.pushLock.setOn.ok === true && result.pushLock.setOn.pushLock === true
+  && result.pushLock.afterOn === true
+  && result.pushLock.setOff.pushLock === false && result.pushLock.afterOff === false)
 
 console.log(JSON.stringify(result, null, 2))
 
