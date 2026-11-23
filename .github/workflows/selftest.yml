@@ -1,0 +1,38 @@
+name: selftest
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      # git 是三个自测脚本的前提（备份 / 局域网 / 仓库状态都真跑 git）
+      - name: git version
+        run: git --version
+      - name: syntax check
+        run: |
+          for f in lib/*.js render-preview.mjs selftest*.mjs; do
+            node --check "$f"
+          done
+      - name: panel selftest
+        run: node selftest-panel.mjs
+      - name: backup selftest
+        run: node selftest-backup.mjs
+        env:
+          # 脚本用 DSH_VH_GIT 覆盖 git 可执行文件；CI 上直接用系统 git
+          DSH_VH_GIT: git
+      - name: lan selftest
+        run: node selftest-lan.mjs
+        env:
+          DSH_VH_GIT: git

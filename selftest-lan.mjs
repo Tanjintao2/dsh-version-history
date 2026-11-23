@@ -32,7 +32,7 @@ sync(['-C', seed, 'add', '.'])
 sync(['-C', seed, 'commit', '-m', 'seed'])
 sync(['-C', seed, 'push', 'origin', 'main'])
 
-const lan = createLan({ reposRoot: root, gitExe: GIT, lanPort: PORT })
+const lan = createLan({ reposRoot: root, gitExe: GIT, lanPort: PORT, settingsPath: join(root, 'lan.json') })
 const started = await lan.start(PORT)
 const base = 'http://127.0.0.1:' + PORT + '/git/demo.git'
 const result = { started: !!(started && started.ok), port: PORT }
@@ -57,12 +57,30 @@ result.bareHead = head.out.trim()
 const idx = await fetch('http://127.0.0.1:' + PORT + '/').then((r) => r.text())
 result.indexPage = { hasRepoLink: idx.includes('/git/demo.git') }
 
+// 只读闸：开只读后 clone 仍可用，push 必须被拒（403）
+await lan.saveSettings({ readOnly: true })
+const roClone = await run(['clone', base, join(root, 'clone-ro')])
+const roPush = await run(['-C', join(root, 'clone-ro'), 'push', 'origin', 'main'])
+result.readOnly = { cloneOk: !roClone.err, pushRejected: !!roPush.err && /403/.test(roPush.errText + roPush.err) }
+
+// 口令闸：无凭据 401，带 Basic 凭据可以正常取 refs
+await lan.saveSettings({ readOnly: false, password: 'p@ss word' })
+const noCred = await fetch(base + '/info/refs?service=git-upload-pack').then((r) => r.status).catch(() => -1)
+const withCred = await fetch(base + '/info/refs?service=git-upload-pack', {
+  headers: { authorization: 'Basic ' + Buffer.from('user:p@ss word').toString('base64') },
+}).then((r) => r.status).catch(() => -1)
+result.password = { noCred, withCred }
+await lan.saveSettings({ clearPassword: true })
+
 await lan.stop()
 result.stopped = !(await lan.status()).running
 rmSync(root, { recursive: true, force: true })
 result.cleaned = !existsSync(root)
 
 const ok = result.started && result.lsRemote.refs > 0 && result.clone.hasFile && !result.push.err &&
-  result.bareHead.includes('from-lan') && result.indexPage.hasRepoLink && result.stopped && result.cleaned
+  result.bareHead.includes('from-lan') && result.indexPage.hasRepoLink &&
+  result.readOnly.cloneOk && result.readOnly.pushRejected &&
+  result.password.noCred === 401 && result.password.withCred === 200 &&
+  result.stopped && result.cleaned
 console.log(JSON.stringify(Object.assign({ ok }, result), null, 2))
 process.exit(ok ? 0 : 1)

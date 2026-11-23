@@ -173,6 +173,55 @@ disk-health-admin.ps1  ──►  D:\reports\smart.json        （管理员）
 - 自测：`selftest-panel.mjs` 的 `confirmPush` 段（先弹框 → 确认前 `POST /dsh-vh/gh` 一次都不发 → 确认后才发）；
   `selftest-backup.mjs` 的 `pushLock` 段（开/关往返）。
 
+## 0.1.16 的一批：校验 / 时效 / 诊断 / 速度 / 并发 / CI / 局域网只读
+
+### 备份可验证（`lib/backup.js`）
+- `mirrorOne()` 在 bundle 之后加两步：
+  `run(gitExe, ['-C', target, 'fsck', '--no-progress', '--no-dangling'])` 与
+  `run(gitExe, ['-C', srcDir, 'bundle', 'verify', bundle])`，结果进 `steps[].verify`。
+- `runCopy()` 的 `okCount` 要求 `steps.every(ok) && bundle.ok && verify.ok`；
+  `lastRun.repos[]` 多 `bundleFile` / `verified` / `verify`。面板每个仓后面显示「已校验」。
+- 代价：每仓多两次 git 调用，一键拷贝从 ~5 s 变 ~11 s（换来“备份真的能恢复”的把握）。
+
+### PAT 到期（`lib/github.js`）
+- `publicState()` 带 `tokenExpiry`；`setExpiry({date})` 校验 `^\d{4}-\d{2}-\d{2}$`、空串清除，
+  走 `POST /dsh-vh/gh {action:'set-expiry'}`。前端 `GithubPanel` 显示 `令牌到期 2026-12-22 · N 天`，
+  ≤7 天变黄并在 head 里给提示。
+
+### SMART 时效（`lib/client.js` 的 `DiskPanel`）
+- `smartAge` 优先取 `smart.ageHours`，没有就用 `smart.generated` 现算；>24 h 视为偏旧，
+  显示「SMART 采集于 N 小时前（偏旧，建议重扫）」，用 `--dsw-alias-state-warn-primary` 上色。
+
+### 关于 / 诊断（`GET /version-history/diag.json` + 顶栏「关于」）
+- `lib/index.js`：`PLUGIN_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))`；`diagInfo(cfg)` 回
+  `{plugin:{name,version,root}, node, pid, uptimeSec, routes:ROUTE_TABLE, files:[{path,exists,bytes,mtime}], lan}`。
+  `files` 覆盖 `data.json` / `health.json` / `backup.json` / `github.json` / `smart.json` / `repos.json` / 报告 HTML。
+- 前端 `AboutPanel()`：插件卡、数据文件卡（在/缺失 + 大小 + 时间）、路由卡、排查提示（「全 404 先看 `/health`」）。
+
+### 生成提速（`E:\Git\scripts\visualize.ps1`）
+- 每版 diff 以 `(仓路径, base, tip)` 为键缓存到 `<Data 同目录>\.cache\diff-cache.json`
+  （`Initialize-DiffCache` / `Save-DiffCache` / `Get-VersionDiff`；上限 4000 条）。
+  注意 JSON 回来是 `PSCustomObject`，`Initialize-DiffCache` 会折成哈希表，否则 `$v['files']` 取不到。
+- 短 sha 从一次 `git log --all` 的结果建表（`$shortMap[$c['hash']] = $c['h']`），不再逐标签 `rev-parse`。
+- 实测（4 仓 60 标签）：冷跑 19.7 s → **15.8 s**，热跑 **6.1 s**；正确性用版本卡片 `+/-` 与文件数核对
+  （如 `dsh-rhino-plugin v0.26.0 +49205 / 128 文件`）。设 `VH_TIMING=1` 打印阶段耗时。
+
+### GitHub 状态并发（`lib/index.js`）
+- `decorateGithub()` 改成队列 + 3 个 worker：仓多时不再逐个等 `ls-remote`。
+
+### CI（`.github/workflows/selftest.yml`）
+- `push`(main) / `pull_request` 触发，matrix `node: [20, 22]`；步骤：`node --check` 全量 →
+  `selftest-panel.mjs` → `selftest-backup.mjs` → `selftest-lan.mjs`（后两个设 `DSH_VH_GIT=git`）。
+
+### 局域网只读 + 口令（`lib/lan.js`）
+- 设置存 `lan.json`（`settingsPath`，默认 `reports/lan.json`）：`{ readOnly, password }`；
+  `saveSettings({readOnly, password, clearPassword})` 立刻生效（`gate` 在内存里同步更新）。
+- 口令走 HTTP Basic：`authOk(req)` 比对 `:` 之后的明文；不匹配回 `401` + `WWW-Authenticate: Basic realm="dsh-version-history"`。
+- 只读：`info/refs?service=git-receive-pack` 与 `POST .../git-receive-pack` 都回 `403`，
+  文案「只读模式：已禁止推送（在「局域网」面板里关掉「只读」再试）」；`upload-pack`（clone/fetch）不受影响。
+- 前端 `LanPanel`：head 显示 `只读` / `需口令` 徽章；body 一行「☐ 只读模式（已禁止推送）」+「改口令 / 清除」。
+- 实测：只读时 clone 成功、push `exit 128` + `remote: 只读模式…`；口令后无凭据 `401`、带凭据 `200 511 B`。
+
 ## 默认路径（lib/paths.js，可移植）
 
 代码里不写死个人绝对路径：根目录取 `DSH_VH_ROOT`，没设就用 `~/.dsh-version-history`，下面派生 `reports/` 与 `scripts/`。

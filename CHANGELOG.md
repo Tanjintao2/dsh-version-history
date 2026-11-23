@@ -3,6 +3,29 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.16
+
+- **备份可验证**（`lib/backup.js`）：每个仓镜像完再跑 `git fsck --no-progress` 与
+  `git bundle verify`，结果进 `lastRun.repos[].verify`；`okCount` 现在要求三步全过
+  （镜像 / bundle / 校验），面板上会显示「已校验」。代价：一次一键拷贝从 ~5 s 变 ~11 s。
+- **PAT 到期提醒**：GitHub 面板可填令牌到期日（`tokenExpiry`，`POST /dsh-vh/gh` 的
+  `set-expiry`），7 天内标黄并在面板顶部提示；到期后绑定/测试/推送都会失败，先看这里。
+- **SMART 时效**：磁盘面板显示「SMART 采集于 N 小时前」，超过 24 h 标黄并提示重扫。
+- **关于 / 诊断**（新路由 `GET /diag.json` + 顶栏「关于」）：插件版本、实际加载路径、
+  8 条路由清单、7 个数据文件（`data.json` / `health.json` / `backup.json` / `github.json` /
+  `smart.json` / `repos.json` / 报告 HTML）的存在性、大小与 mtime。上次「重启后全 404」
+  就是靠这条查出来的。
+- **生成提速**（`E:\Git\scripts\visualize.ps1`）：每版 diff 按 `(仓, base, tip)` 缓存到
+  `<报告目录>\.cache\diff-cache.json`，短 sha 改为从一次 `git log --all` 建表。
+  4 仓 60 标签：**冷跑 19.7 s → 15.8 s，热跑 6.1 s**（首次构建缓存后逐次命中）。
+  设 `VH_TIMING=1` 可看阶段耗时。
+- **GitHub 状态并发**：`/data.json` 的逐仓 `ls-remote` 改为 3 路并发，仓多时不至于排队。
+- **CI**：新增 `.github/workflows/selftest.yml`，push / PR 在 Node 20 与 22 上跑
+  `node --check` + `selftest-panel.mjs` + `selftest-backup.mjs` + `selftest-lan.mjs`。
+- **局域网只读 + 口令**：局域网面板新增「只读模式」（拒绝 `git-receive-pack`，push 收到 403）
+  与 Basic 口令（401 带 `WWW-Authenticate`）；设置存 `lan.json`，Host 侧走
+  `POST /dsh-vh/lan`。无鉴权仍是默认，只读/口令都是按需开。
+
 ## 0.1.15
 
 - **「禁止推送」锁（默认关）**：「备份设置」新增「推送保护」卡。锁上以后，Host 侧在
