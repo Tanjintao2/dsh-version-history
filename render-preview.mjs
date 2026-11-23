@@ -28,6 +28,30 @@ const src = readFileSync(join(here, 'lib', 'client.js'), 'utf8')
 const health = JSON.parse(readFileSync(process.env.VH_HEALTH || 'E:/Git/reports/health.json', 'utf8'))
 const data = JSON.parse(readFileSync(process.env.VH_DATA || 'E:/Git/reports/data.json', 'utf8'))
 
+// 预览页是给 README 截图用的，所以一律用中性占位替换本机身份信息：
+// 家目录（含 Windows 用户名）、物理盘型号/序列号、镜像根目录、局域网 IP 都不进图。
+const DEMO_ROOT = 'D:\\repos'
+const DEMO_MIRROR = 'D:\\GitMirror'
+const DEMO_LAN_IP = '192.168.1.10'
+const baseName = (p) => String(p ?? '').split(/[\\/]/).filter(Boolean).pop() || ''
+
+for (const r of data.repos ?? []) {
+  r.path = DEMO_ROOT + '\\' + (r.name || baseName(r.path))
+}
+if (data.primary) data.primary = DEMO_ROOT + '\\' + baseName(data.primary)
+if (Array.isArray(data.mirror)) {
+  for (const m of data.mirror) if (m && m.path) m.path = DEMO_MIRROR + '\\' + baseName(m.path)
+}
+for (const [i, d] of (health.disks ?? []).entries()) {
+  const size = d.sizeGB ? Math.round(d.sizeGB) + 'GB' : ''
+  d.model = ['Demo SSD', 'Demo HDD'][d.kind === 'HDD' ? 1 : 0] + (size ? ' ' + size : '')
+  d.serial = 'SN-DEMO-' + String(i + 1).padStart(2, '0')
+  if (d.smart && typeof d.smart === 'object') {
+    delete d.smart.serial
+    delete d.smart.model
+  }
+}
+
 let hooks = []
 let cursor = 0
 let dirty = false
@@ -76,10 +100,10 @@ globalThis.fetch = (url) => {
         running: true,
         port: 8788,
         startedAt: new Date().toISOString(),
-        root: 'E:\\Git\\repos',
+        root: 'D:\\repos',
         repos: ['local.git'],
-        ips: [{ address: '192.168.3.38', name: '以太网 2' }],
-        urls: ['http://192.168.3.38:8788/git/local.git'],
+        ips: [{ address: '192.168.1.10', name: '以太网 2' }],
+        urls: ['http://192.168.1.10:8788/git/local.git'],
         error: null,
       }),
     })
@@ -88,7 +112,7 @@ globalThis.fetch = (url) => {
     return Promise.resolve({
       ok: true,
       status: 200,
-      json: () => Promise.resolve({ ok: true, mirror: 'I:\\GitBackup', keep: 10 }),
+      json: () => Promise.resolve({ ok: true, mirror: 'D:\\GitMirror', keep: 10 }),
     })
   }
   if (String(url).endsWith('/backup.json')) {
@@ -96,16 +120,16 @@ globalThis.fetch = (url) => {
       ok: true,
       status: 200,
       json: () => Promise.resolve({
-        file: 'E:\\Git\\reports\\backup.json',
+        file: 'D:\\reports\\backup.json',
         exists: false,
-        mirror: 'I:\\GitBackup',
+        mirror: 'D:\\GitMirror',
         keep: 10,
-        reposRoot: 'E:\\Git\\repos',
+        reposRoot: 'D:\\repos',
         hasPassword: !process.env.VH_BK_FRESH,
         passwordMode: process.env.VH_BK_FRESH ? '' : 'set',
         lastRun: {
           at: '2026-11-23T00:52:10.000Z',
-          mirror: 'I:\\GitBackup',
+          mirror: 'D:\\GitMirror',
           ok: true,
           count: 4,
           okCount: 4,
@@ -138,7 +162,7 @@ globalThis.fetch = (url) => {
         fullName: 'demo/git-demo',
         url: 'https://github.com/demo/git-demo.git',
         branch: 'main',
-        repoPath: 'E:\\Git\\work\\local',
+        repoPath: 'D:\\repos\\local',
         hasToken: true,
         tokenMasked: 'ghp_…cd34',
         updatedAt: '2026-11-22 22:30:00',
@@ -152,7 +176,7 @@ globalThis.fetch = (url) => {
       ok: true,
       status: 200,
       json: () => Promise.resolve({
-        file: 'E:\\Git\\reports\\repos.json',
+        file: 'D:\\reports\\repos.json',
         repos: (data.repos || []).map((r) => r.path),
       }),
     })

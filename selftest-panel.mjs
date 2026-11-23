@@ -107,8 +107,8 @@ if (String(url).endsWith('/lan.json')) {
       startedAt: new Date().toISOString(),
       root: 'E:\\Git\\repos',
       repos: ['local.git'],
-      ips: [{ address: '192.168.3.38', name: '以太网 2' }],
-      urls: ['http://192.168.3.38:8788/git/local.git'],
+      ips: [{ address: '192.168.1.10', name: '以太网 2' }],
+      urls: ['http://192.168.1.10:8788/git/local.git'],
       error: null,
     }),
   })

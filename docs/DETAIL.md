@@ -4,29 +4,29 @@
 
 DSH 侧边栏里的「GIT管理」面板：把本机几个 git 仓的版本讲清楚 —— 每个版本相对上一版动了哪些文件、增删多少行、包含哪些提交；再有一个「未发布」占位告诉你还有没打标签的提交。同一面板里还有磁盘容量 / SMART 健康（右侧常驻列）与局域网共享仓库。
 
-数据不是插件自己算的，而是 `E:\Git\scripts\visualize.ps1` 生成的 `E:\Git\reports\data.json`；插件只负责把它读出来渲染，外加一个「重新生成」按钮（后台跑一次那个脚本）。
+数据不是插件自己算的，而是 `D:\scripts\visualize.ps1` 生成的 `D:\reports\data.json`；插件只负责把它读出来渲染，外加一个「重新生成」按钮（后台跑一次那个脚本）。
 
 ## 数据流
 
 ```
-visualize.ps1  ──►  E:\Git\reports\data.json      （Host half 每次请求现读）
+visualize.ps1  ──►  D:\reports\data.json      （Host half 每次请求现读）
                          │
                          ▼  GET /version-history/data.json
                    侧边栏面板（React，同源 fetch）
 ```
 
-- 独立离线页 `E:\Git\reports\版本历史.html` 由同一个脚本生成，可直接双击打开；面板里的「新标签打开」走 `GET /version-history/report`。
+- 独立离线页 `D:\reports\版本历史.html` 由同一个脚本生成，可直接双击打开；面板里的「新标签打开」走 `GET /version-history/report`。
 - 「重新生成」= `GET /version-history/refresh` → Host 跑 `powershell -File visualize.ps1 -NoOpen`（约 10–15 s）。**注意 resource 路由只放行 GET**（POST 在宿主层就是 405）。
 - 面板与离线页顶部都有一条**盘容量状态**：`data.json` 的 `disks[]` 给出每个相关盘符（本地仓库 E:、工作区仓库 C:、备份镜像 I:）的 `free / total / pctFree / state`，脚本用 `System.IO.DriveInfo` 现读；`< 10 GB 或 < 10%` 记红，`< 50 GB 或 < 20%` 记黄。
 
 ## 磁盘健康（常驻磁盘列 + 右侧栏 tab）
 
 ```
-disk-health.ps1        ──►  E:\Git\reports\health.json       （普通权限，5–7 s）
-smart-launch.ps1       ──►  E:\Git\reports\smart.state.json  （phase / exitCode / error）
+disk-health.ps1        ──►  D:\reports\health.json       （普通权限，5–7 s）
+smart-launch.ps1       ──►  D:\reports\smart.state.json  （phase / exitCode / error）
   └ Start-Process -Verb RunAs -PassThru -Wait
-disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员）
-                       ──►  E:\Git\reports\smart.log         （-Log + Start-Transcript + trap）
+disk-health-admin.ps1  ──►  D:\reports\smart.json        （管理员）
+                       ──►  D:\reports\smart.log         （-Log + Start-Transcript + trap）
                                   │
                                   ▼  GET /version-history/disks.json   （缺文件才现扫）
                              GET /version-history/disks/scan            （强制现扫）
@@ -41,11 +41,11 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 
 - 主面板是**三栏** `.vh-body{grid-template-columns:250px minmax(0,1fr) 340px}`：左项目/版本树、中明细、右 `<aside class="vh-dcol">` 直接渲染 `DiskPanel({embedded:true})`。`@media (max-width:1240px)` 时隐藏右栏，退回右侧栏标签页形态。
 - 注册方式（右侧栏形态）：`ctx.get('betterSidebar').registerTab({ id:'version-history:disks', title, icon, order:60, single:true, component: DiskPanel })`，打开用 `openTab({ type:'version-history:disks', target:'right' })` + `layout.openRightbar(true,false)`；注册幂等（better-sidebar 服务可能晚于本模块就绪）。**不是 `main` slot**，所以侧边栏按钮列表里不会多一个主面板。
-- **SMART 提权按钮**：面板里点「SMART」（右侧栏形态叫「SMART 提权扫描」）→ `GET /smart/scan` → host 跑 `E:\Git\scripts\smart-launch.ps1`（`Start-Process -Verb RunAs -PassThru -Wait`，把 `phase/exitCode/error` 写进 `smart.state.json`；`-DryRun` 只写 state 不弹 UAC）→ 前端每 1.5 s 轮询 `GET /smart.json`（先看 `valid`，trap 写的失败快照会带 `error`）与 `GET /smart.state.json`，快照一变就 `/disks/scan` 合并进 `health.json`；UAC 取消 / 脚本非 0 退出 / 快照缺失分别给不同提示，顶栏「日志 / 看日志」按钮打 `GET /smart.log?lines=40`。
+- **SMART 提权按钮**：面板里点「SMART」（右侧栏形态叫「SMART 提权扫描」）→ `GET /smart/scan` → host 跑 `D:\scripts\smart-launch.ps1`（`Start-Process -Verb RunAs -PassThru -Wait`，把 `phase/exitCode/error` 写进 `smart.state.json`；`-DryRun` 只写 state 不弹 UAC）→ 前端每 1.5 s 轮询 `GET /smart.json`（先看 `valid`，trap 写的失败快照会带 `error`）与 `GET /smart.state.json`，快照一变就 `/disks/scan` 合并进 `health.json`；UAC 取消 / 脚本非 0 退出 / 快照缺失分别给不同提示，顶栏「日志 / 看日志」按钮打 `GET /smart.log?lines=40`。
 - 每块盘一张卡：型号 / 机械·固态 / 总线 / 容量 / 健康 / 运行状态 / 扇区；HDD 显示转速、通电时间、启停次数、磁头加载、重映射扇区、待重映射、离线不可纠正、UDMA CRC、温度；SSD 显示寿命磨损 %、通电时间、写入量、异常掉电、介质错误、可用备用块 %、温度（含峰值）；下面给出风险分（`稳定 / 注意 / 风险`）与理由列表。
-- 没有 SMART 快照时这些字段显示「待 SMART」并给一行提示；想离线跑也可用 `E:\Git\磁盘健康扫描-管理员.cmd`（已提权才跑脚本，否则只打印提权方法；**不自提权**以避免静默 UAC）。
+- 没有 SMART 快照时这些字段显示「待 SMART」并给一行提示；想离线跑也可用 `D:\git\磁盘健康扫描-管理员.cmd`（已提权才跑脚本，否则只打印提权方法；**不自提权**以避免静默 UAC）。
 - **普通权限也能拿到一部分（2026-11-22 修）**：`disk-health-admin.ps1` 不再有管理员硬闸门 —— SATA 盘的 ATA SMART（温度/通电时间/启停次数/重映射扇区/待重映射/离线不可纠正/UDMA CRC）普通权限就能读，只有存储栈计数器（NVMe 寿命磨损等）需要提权；脚本降级采集并在快照里标 `elevated:false`。所以 host 的 `/disks/scan` 每次都会**先跑一次普通权限采集**（`collectSmart()` → `smart.json`）再跑 `disk-health.ps1` 合并，用户不必先点 SMART 才有数据。
-- **NVMe 走 smartctl（2026-11-22 深夜）**：Windows 的 `MSFT_StorageReliabilityCounter` 对 NVMe 不提供 `PowerOnHours` / `ReadErrors*` / `StartStopCycleCount`（提权也一样），所以 `disk-health-admin.ps1` 对「SSD 且拿不到通电时间」的盘额外跑 `smartctl -j -a /dev/pdN`（失败退 `-d nvme`）读 NVMe SMART/Health Log，补 `powerOnHours / wearPct(Percentage Used) / hostWrittenGB / unsafeShutdowns / mediaErrors / availableSparePct`（快照里 `source=storage+nvme-smart`、`nvmeVia=smartctl`）。smartctl 来自 **smartmontools 7.4**，装在 `E:\Git\tools\smartmontools\bin\smartctl.exe`（脚本参数 `-Smartctl` 可换；文件不在就跳过这一层）。
+- **NVMe 走 smartctl（2026-11-22 深夜）**：Windows 的 `MSFT_StorageReliabilityCounter` 对 NVMe 不提供 `PowerOnHours` / `ReadErrors*` / `StartStopCycleCount`（提权也一样），所以 `disk-health-admin.ps1` 对「SSD 且拿不到通电时间」的盘额外跑 `smartctl -j -a /dev/pdN`（失败退 `-d nvme`）读 NVMe SMART/Health Log，补 `powerOnHours / wearPct(Percentage Used) / hostWrittenGB / unsafeShutdowns / mediaErrors / availableSparePct`（快照里 `source=storage+nvme-smart`、`nvmeVia=smartctl`）。smartctl 来自 **smartmontools 7.4**，装在 `D:\git\tools\smartmontools\bin\smartctl.exe`（脚本参数 `-Smartctl` 可换；文件不在就跳过这一层）。
 - **曾经的静默 bug**：脚本里用 `$out = @()` 存结果 —— PowerShell 变量名大小写不敏感，`$out` 就是参数 `[string]$Out`，赋值把它变成字符串，`WriteAllText($Out, …)` 于是把 JSON 写进一个叫 `System.Collections.Specialized.OrderedDictionary …` 的垃圾文件（提权时 CWD 是 `C:\Windows\System32`），真正的 `smart.json` 从不出现且不报错。现已改名 `$entries`，并加了一次性清理（下次提权运行会删掉那个垃圾文件）。
 - **左栏「仓库来源」卡**：`.vh-src` 在搜索框上方，`本地 N 个仓库 · 本机目录`（绿点）+ `局域网 在线 · :8788 · M 个可 clone` / `离线（未开启共享）`（点随 `GET /lan.json` 的 `running`，15 s 轮询），右侧「开启 / 管理」直接开右侧栏 LAN 标签页。每个仓库行是「名称 + `本地`/`局域网` 标签 + n 提交·m 版」，下面一行显示完整仓库路径；`http(s)://` / `git://` / `ssh://` / `\\host\share` 判为局域网，其余为本地。
 - 卷里的 `system: true` 表示无盘符的系统/恢复分区，不参与「空间告急」扣分。
@@ -53,7 +53,7 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 
 ## 局域网共享 Git（右侧栏 `version-history:lan`）
 
-- 目的：把 `E:\Git\repos` 下的裸仓库共享给同一局域网的其他设备（手机 / 另一台电脑）直接 clone、push。
+- 目的：把 `D:\repos` 下的裸仓库共享给同一局域网的其他设备（手机 / 另一台电脑）直接 clone、push。
 - MinGit **没有** `git daemon`、也没有 `git http-backend`，但带了 `cmd\git-upload-pack.exe` / `cmd\git-receive-pack.exe`；`lib/lan.js` 因此在插件进程里起一个最小的 Smart HTTP 服务：
   - `GET /`：HTML 仓库列表（每仓一行 `git clone http://<ip>:<port>/git/<name>`）。
   - `GET /git/<repo>/info/refs?service=git-upload-pack|git-receive-pack`：spawn `git <svc> --stateless-rpc --advertise-refs <bare>`，前面拼 pkt 行 `# service=…` 与 `0000`。
@@ -66,8 +66,8 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 ## GitHub 绑定 / 手动推送（右侧栏 `version-history:github`）
 
 - 目的：把本地仓库**手动**推到 GitHub；绑定一次远程后，改完点一个按钮就推上去。不自动、不后台轮询。
-- 配置放 `E:\Git\reports\github.json`：`{bound, owner, repo, url, branch, repoPath, token, tokenMasked, updatedAt, lastTest, lastPush}`。
-  - `token` 是 **DPAPI 密文**（`CurrentUser` 作用域）：`E:\Git\scripts\dpapi.ps1 -Mode Protect` 从 **stdin** 读明文、回 base64；`-Mode Unprotect -B64 <b64>` 反向。明文只在内存里，界面只显示掩码。
+- 配置放 `D:\reports\github.json`：`{bound, owner, repo, url, branch, repoPath, token, tokenMasked, updatedAt, lastTest, lastPush}`。
+  - `token` 是 **DPAPI 密文**（`CurrentUser` 作用域）：`D:\scripts\dpapi.ps1 -Mode Protect` 从 **stdin** 读明文、回 base64；`-Mode Unprotect -B64 <b64>` 反向。明文只在内存里，界面只显示掩码。
 - 认证：`git -c http.https://github.com/.extraheader=AUTHORIZATION: basic <base64('x-access-token:'+token)>`，作用域限定 github.com，**令牌不进 URL、不进命令行参数**；`GIT_TERMINAL_PROMPT=0` 防止卡在交互提示。
 - 动作：
   - `bind`：解析远程（`owner/repo` / `https://github.com/o/r(.git)` / `git@github.com:o/r.git`）→ 存配置；给了 `repoPath` 还顺手 `git remote set-url|add origin <url>`。
@@ -85,7 +85,7 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
   - `passwordMode` 为空表示「还没回答过首次询问」，面板据此弹「要不要设密码」；选「不设密码」写 `'none'` 后不再问。
 - 要备份哪些仓：`reposRoot` 下的 `*.git` 裸仓 + `data.json` 里的 `repos[].path`（页面清单），按 basename 去重。
 - 「一键拷贝」（`runCopy`）对每个仓：
-  1. 目标 `I:\GitBackup\<名字>.git` 存在 → `git -C <src> push --mirror <target>`；不存在 → `git clone --mirror <src> <target>`；
+  1. 目标 `D:\GitMirror\<名字>.git` 存在 → `git -C <src> push --mirror <target>`；不存在 → `git clone --mirror <src> <target>`；
   2. `git -C <target> rev-parse --short HEAD` 回显镜像侧 HEAD；
   3. `git -C <src> bundle create <mirror>/bundles/<名字>-<yyyymmdd-HHmmss>.bundle --all`，按名字前缀排序只留最近 `keep` 份（默认 10）。
 - 路由：`GET /version-history/backup.json`（状态 + 待备份仓库清单）、`POST /dsh-vh/backup`
@@ -93,7 +93,7 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 - 许可密码的拦截在 **Host 侧**（`gate()`）：设了密码后 `set-mirror` / `run` 必须带 `password`，
   否则回 `{ok:false, needPassword:true}` / `{ok:false, badPassword:true}`；客户端只是把它显示成人话。
 - 离线渲染：`node render-preview.mjs --backup`（`VH_BK_FRESH=1` 渲染「第一次询问」那版）。
-- 与定时任务的关系：`E:\Git\scripts\backup.ps1` 每天 21:00 仍独立跑（只管 `local.git`），
+- 与定时任务的关系：`D:\scripts\backup.ps1` 每天 21:00 仍独立跑（只管 `local.git`），
   面板里这个按钮是**手动补一次**（覆盖全部项目仓）。
 
 ## 自动备份（「备份设置」里的「自动备份」卡，0.1.6）
@@ -186,11 +186,11 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
 
 ## 加项目
 
-编辑 `E:\Git\scripts\visualize.ps1` 里的 `Pick-Repos`，或调用时带 `-Repos`：
+编辑 `D:\scripts\visualize.ps1` 里的 `Pick-Repos`，或调用时带 `-Repos`：
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File E:\Git\scripts\visualize.ps1 `
-  -Repos 'E:\Git\work\local','D:\proj\a','D:\proj\b' -NoOpen
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\scripts\visualize.ps1 `
+  -Repos 'D:\repos\local','D:\proj\a','D:\proj\b' -NoOpen
 ```
 
 面板与离线页会一起更新，因为两者读同一份数据。

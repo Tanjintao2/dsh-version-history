@@ -3,6 +3,20 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.14
+
+- **文档截图与示例路径全面脱敏**（发布的图片和文字里不再带本机信息）：
+  - `render-preview.mjs` 在渲染前把数据换成中性占位：仓库路径 → `D:\repos\<name>`、镜像根目录 →
+    `D:\GitMirror`、物理盘型号/序列号 → `Demo SSD/HDD <容量>` + `SN-DEMO-xx`、局域网 IP →
+    `192.168.1.10`。预览页只用于 README 截图，所以这一步没有开关，恒生效。
+  - README 的 `panel-main.png` / `panel-backup.png` 用脱敏后的预览重截（Windows 用户名与家目录、
+    硬盘序列号、镜像路径都不再出现在图里）。
+- **代码里的提示文案不再写死盘符**：`lib/client.js` 的 tooltip / 错误提示改成
+  `backup.ps1`、`disk-health.ps1`、`smart.log`、`repos 目录` 这类说法，不再指向某个具体盘；
+  README / DETAIL / CHANGELOG 里的示例路径统一成 `D:\…`。
+- 自测：`selftest.mjs`、`selftest-panel.mjs`、`selftest-backup.mjs` 均 exit 0；
+  `render-preview.mjs` 五种模式的产物都验过不再含 `C:\Users\`、盘型号、内网 IP。
+
 ## 0.1.13
 
 - **仓库行右键菜单：手动选择「推送到私有仓库」/「推送到公开仓库」**。在左栏项目行上右键，弹出
@@ -79,10 +93,10 @@ each tag has a matching GitHub Release with an installable tarball.
   `git remote get-url origin` 判是不是 github.com，再 `git ls-remote --heads <url> refs/heads/<branch>`
   拿远端 sha 与本地 HEAD 比对（能比祖先关系就用 `merge-base --is-ancestor` 判 ahead/behind，
   并用 `rev-list --count` 数差多少提交）。结果按仓库路径缓存 3 分钟，失败静默（不显示徽章）。
-- **每日备份扩到全部仓库**：新增 `E:\Git\scripts\backup-all.ps1`（PowerShell 版 `runCopy`）——
+- **每日备份扩到全部仓库**：新增 `D:\scripts\backup-all.ps1`（PowerShell 版 `runCopy`）——
   读 `repos.json` + `reposRoot\*.git` 去重，逐仓 `push --mirror`（没有就 `clone --mirror`）+
   `bundle create --all` 到 `<mirror>/bundles/<名字>-<时间戳>.bundle` 并按 `-Keep`（默认 10）轮转，
-  日志 `I:\GitBackup\logs\backup-all.log`，最后顺带跑 `visualize.ps1 -NoOpen` 刷新页面。
+  日志 `D:\GitMirror\logs\backup-all.log`，最后顺带跑 `visualize.ps1 -NoOpen` 刷新页面。
   计划任务 `GitBackup-Local`（每天 21:00）已改成调它 —— 以前只备份 `local.git`，现在覆盖四个仓。
 - `render-preview.mjs` 支持 `VH_DATA` 指定 data 文件（想把 Host 侧装饰后的数据拿去渲染预览时用）。
 

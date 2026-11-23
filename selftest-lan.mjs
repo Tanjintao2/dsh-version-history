@@ -1,4 +1,4 @@
-// 局域网 Git 服务的端到端自测（临时仓库目录，不碰 E:\Git\repos）：
+// 局域网 Git 服务的端到端自测（临时仓库目录，不碰 D:\repos）：
 //   起服务 → ls-remote → clone → 提交 → push → 校验裸仓库 → 首页 HTML → 停服务 → 清理。
 // 注意：测 HTTP 必须用 execFile + timeout，execFileSync 会挂住（踩过）。
 import { execFileSync, execFile } from 'node:child_process'

@@ -64,13 +64,13 @@ plugin_manager: action=set_plugin,   target="include:dsh-version-history", enabl
 
 ### 装完要配的（可选）
 
-插件默认从 `~/.dsh-version-history` 派生所有路径，**开箱即用**；若你的脚本/报告在别处（例如 `E:\Git\scripts`、`E:\Git\reports`），按下面「配置（可移植）」那节在自己的 profile 补丁层覆盖，不要改包内文件。
+插件默认从 `~/.dsh-version-history` 派生所有路径，**开箱即用**；若你的脚本/报告在别处（例如 `D:\scripts`、`D:\reports`），按下面「配置（可移植）」那节在自己的 profile 补丁层覆盖，不要改包内文件。
 
 ## 备份（镜像 / 一键拷贝 / 许可密码）
 
 主面板顶栏「备份」→「备份设置」：
 
-1. **镜像**：填镜像根目录（绝对路径，例如 `I:\GitBackup`）→「保存镜像」。目录不存在会建；界面回显派生的 `bundles/`、`logs/`。
+1. **镜像**：填镜像根目录（绝对路径，例如 `D:\GitMirror`）→「保存镜像」。目录不存在会建；界面回显派生的 `bundles/`、`logs/`。
 2. **一键拷贝**：把下面列出的仓逐个镜像过去（已有的 `git push --mirror`，没有的 `git clone --mirror`），再各打一份
    `bundles/<名字>-<yyyymmdd-HHmmss>.bundle`；每个仓只保留最近 `保留 N 份`（默认 10）。
    要备份的仓 = `reposRoot` 下的裸仓 + `data.json` 里列出的项目仓（按名字去重）。
@@ -89,16 +89,16 @@ plugin_manager: action=set_plugin,   target="include:dsh-version-history", enabl
 
 ### 每天 21:00 的那个 Windows 计划任务（也覆盖全部仓库）
 
-`GitBackup-Local`（任务计划程序，每天 21:00）现在跑的是 **`E:\Git\scripts\backup-all.ps1`**：
-读 `E:\Git\reports\repos.json` 加上 `E:\Git\repos\*.git` 去重，逐仓 `push --mirror`（没有就 `clone --mirror`）
-+ `bundle create --all`，bundle 按名字轮转保留最近 `-Keep`（默认 10）份，日志 `I:\GitBackup\logs\backup-all.log`，
+`GitBackup-Local`（任务计划程序，每天 21:00）现在跑的是 **`D:\scripts\backup-all.ps1`**：
+读 `D:\reports\repos.json` 加上 `D:\repos\*.git` 去重，逐仓 `push --mirror`（没有就 `clone --mirror`）
++ `bundle create --all`，bundle 按名字轮转保留最近 `-Keep`（默认 10）份，日志 `D:\GitMirror\logs\backup-all.log`，
 最后跑一次 `visualize.ps1 -NoOpen` 刷新页面（面板与离线页读同一份 `data.json`）。
 
 ```powershell
 # 手动跑一次（不开页面）
-powershell -NoProfile -ExecutionPolicy Bypass -File E:\Git\scripts\backup-all.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\scripts\backup-all.ps1
 # 只看会做什么
-powershell -NoProfile -ExecutionPolicy Bypass -File E:\Git\scripts\backup-all.ps1 -DryRun
+powershell -NoProfile -ExecutionPolicy Bypass -File D:\scripts\backup-all.ps1 -DryRun
 ```
 
 > 面板里的「自动备份」是**DSH 进程内**的定时器（只在 DSH 开着时生效）；21:00 这条是系统级任务，关机不跑但开机后按计划继续，两者互不冲突。
@@ -125,27 +125,27 @@ powershell -NoProfile -ExecutionPolicy Bypass -File E:\Git\scripts\backup-all.ps
 | `DSH_VH_LAN_PORT` | 局域网 Smart HTTP 端口（默认 8788） |
 | `DSH_VH_REPOS` | 预置仓库清单（分号或逗号分隔的绝对路径），只在 `repos.json` 还不存在时生效 |
 
-需要指到别处（例如本机把脚本放 `E:\Git\scripts`、报告放 `E:\Git\reports`），在**自己的 profile 补丁层**覆盖 config，不要改本包：
+需要指到别处（例如本机把脚本放 `D:\scripts`、报告放 `D:\reports`），在**自己的 profile 补丁层**覆盖 config，不要改本包：
 
 ```yaml
 - id: dsh-version-history
   name: dsh-version-history
   config:
-    dataPath: 'E:\Git\reports\data.json'
-    reportPath: 'E:\Git\reports\版本历史.html'
-    scriptPath: 'E:\Git\scripts\visualize.ps1'
-    reposPath: 'E:\Git\reports\repos.json'
-    healthPath: 'E:\Git\reports\health.json'
-    healthScript: 'E:\Git\scripts\disk-health.ps1'
-    smartPath: 'E:\Git\reports\smart.json'
-    smartScript: 'E:\Git\scripts\disk-health-admin.ps1'
-    smartLauncher: 'E:\Git\scripts\smart-launch.ps1'
-    smartStatePath: 'E:\Git\reports\smart.state.json'
-    smartLogPath: 'E:\Git\reports\smart.log'
-    githubPath: 'E:\Git\reports\github.json'
-    dpapiScript: 'E:\Git\scripts\dpapi.ps1'
-    reposRoot: 'E:\Git\repos'
-    gitExe: 'E:\Git\tools\git\cmd\git.exe'
+    dataPath: 'D:\reports\data.json'
+    reportPath: 'D:\reports\版本历史.html'
+    scriptPath: 'D:\scripts\visualize.ps1'
+    reposPath: 'D:\reports\repos.json'
+    healthPath: 'D:\reports\health.json'
+    healthScript: 'D:\scripts\disk-health.ps1'
+    smartPath: 'D:\reports\smart.json'
+    smartScript: 'D:\scripts\disk-health-admin.ps1'
+    smartLauncher: 'D:\scripts\smart-launch.ps1'
+    smartStatePath: 'D:\reports\smart.state.json'
+    smartLogPath: 'D:\reports\smart.log'
+    githubPath: 'D:\reports\github.json'
+    dpapiScript: 'D:\scripts\dpapi.ps1'
+    reposRoot: 'D:\repos'
+    gitExe: 'D:\git\tools\git\cmd\git.exe'
     lanPort: 8788
 ```
 
