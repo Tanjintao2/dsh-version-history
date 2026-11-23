@@ -169,6 +169,24 @@ if (String(url).indexOf('/dsh-vh/gh') >= 0) {
       json: () => Promise.resolve({ ok: true, push: { at: '2026-11-22 22:33:00', ok: true, ms: 2100, branch: 'main', tags: true, out: ['To https://github.com/demo/git-demo.git', '   abc1234..def5678  main -> main'], err: '' } }),
     })
   }
+  if (body.action === 'publish') {
+    const vis = body.visibility === 'public' ? 'public' : 'private'
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        ok: true,
+        publish: {
+          at: '2026-11-23 22:40:00', ok: true, ms: 3200, full: 'demo/' + (body.name || 'repo'),
+          url: 'https://github.com/demo/' + (body.name || 'repo'),
+          gitUrl: 'https://github.com/demo/' + (body.name || 'repo') + '.git',
+          visibility: vis, created: true, branch: 'main', out: ['* [new branch] main -> main'], err: '',
+        },
+        origin: { action: 'add', ok: true },
+        state: { bound: true, fullName: 'demo/' + (body.name || 'repo'), hasToken: true, branch: 'main' },
+      }),
+    })
+  }
   return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ ok: true, state: { bound: true, fullName: 'demo/git-demo', hasToken: true, branch: 'main' } }) })
 }
 return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ ok: true, ms: 12 }) })
@@ -304,6 +322,34 @@ result.repoRows = byClass(tree, 'vh-grp-h').map((g) => ({
   tagClass: byClass(g, 'vh-tag').map((t) => t.props.className),
 }))
 result.repoPaths = byClass(tree, 'vh-repo-path').map(textOf)
+
+// 右键菜单：仓库行 → 推私有 / 推公开
+{
+  const heads = byClass(tree, 'vh-grp-h')
+  if (heads.length && heads[0].props.onContextMenu) {
+    const ev = { preventDefault() {}, stopPropagation() {}, clientX: 120, clientY: 240 }
+    heads[0].props.onContextMenu(ev)
+    let mt = await settle()
+    const menuBtns = byClass(mt, 'vh-menu-i').map((b) => textOf(b).trim())
+    const menuHead = byClass(mt, 'vh-menu-h').map(textOf)
+    const before = fetchCalls.length
+    const privBtn = byClass(mt, 'vh-menu-i').find((b) => textOf(b).indexOf('推送到私有仓库') >= 0)
+    if (privBtn) {
+      privBtn.props.onClick({ preventDefault() {}, target: null })
+      mt = await settle()
+    }
+    result.contextMenu = {
+      opened: menuBtns.length > 0,
+      items: menuBtns,
+      head: menuHead,
+      publishCalls: fetchCalls.slice(before).map((c) => c.method + ' ' + c.url),
+      notice: byClass(mt, 'vh-msg').map((n) => textOf(n).replace(/\s+/g, ' ')),
+      closedAfterClick: byClass(mt, 'vh-menu').length === 0,
+    }
+  } else {
+    result.contextMenu = { opened: false, reason: 'no group header / no onContextMenu' }
+  }
+}
 
 // disk capacity chips: drive letter, role, free/total, usage bar
 const diskChips = byClass(tree, 'vh-disk')

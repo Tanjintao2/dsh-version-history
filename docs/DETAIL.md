@@ -140,6 +140,24 @@ disk-health-admin.ps1  ──►  E:\Git\reports\smart.json        （管理员�
   `title` 里给 owner/repo、分支、本地/远端短 sha、检查时间。
 - 局限：只看 `origin` 一个远端；`ls-remote` 要能连上 GitHub（断网/代理不通时不出徽章，不是「已同步」的假象）。
 
+## 仓库行右键菜单：推私有 / 推公开（0.1.13）
+
+- 入口：左栏项目行 `.vh-grp-h` 的 `onContextMenu` → `openMenu(ev, ri, r)`，状态 `menu = { x, y, idx, repo }`。
+- 菜单是自绘的（不用浏览器原生菜单）：`.vh-menu-back`（全屏透明层，点空白 / 右键关闭）里放 `.vh-menu`
+  （`position:fixed`，`left/top` 取 `Math.max(8, ev.clientX/Y)`，`z-index:60`），内容为
+  仓库名标题 + `推送到私有仓库`（橙点）+ `推送到公开仓库`（绿点）+ `复制仓库路径` + `取消`。
+- 点了推送会调 `POST /dsh-vh/gh {action:'publish', repoPath, name, visibility}` →
+  `lib/github.js` 的 `publish()`：
+  1. 令牌：显式传入的 `token` 优先，否则用已绑定的（DPAPI 解出来）。
+  2. 分支：显式 `branch` → `git rev-parse --abbrev-ref HEAD` → 兜底 `main`。
+  3. 建仓：PowerShell `Invoke-RestMethod`（认系统代理）先 `/user` 取 login，再 `GET /repos/<login>/<name>`；
+     只有 404 才 `POST /user/repos`（`private` 按 `visibility` 取 `true/false`）。
+  4. 推送：`git -C <repoPath> push <gitUrl> refs/heads/<br>:refs/heads/<br> --tags`，
+     令牌走 `-c http.https://github.com/.extraheader=AUTHORIZATION: basic <b64>`，超时 300 s。
+  5. remote：仅当仓库当前**没有** `origin` 才 `git remote add origin <gitUrl>`；已有则不动（`origin.action='keep'`）。
+  6. 成功后写回绑定信息与 `lastPush`，前端弹提示并 `loadData() + loadGh()` 刷新徽章。
+- 自测：`selftest-panel.mjs` 的 `contextMenu` 段；预览：`VH_MENU=1 node render-preview.mjs --panel preview-main-menu.html`。
+
 ## 默认路径（lib/paths.js，可移植）
 
 代码里不写死个人绝对路径：根目录取 `DSH_VH_ROOT`，没设就用 `~/.dsh-version-history`，下面派生 `reports/` 与 `scripts/`。

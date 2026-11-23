@@ -3,6 +3,22 @@
 All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 
+## 0.1.13
+
+- **仓库行右键菜单：手动选择「推送到私有仓库」/「推送到公开仓库」**。在左栏项目行上右键，弹出
+  菜单（仓库名 + 两项推送 + 复制仓库路径 + 取消），点哪一项就在对应可见性下建仓（已存在则复用）
+  并 `git push` 当前分支 + `--tags`，最后把结果与仓库 URL 写回面板提示。
+- 后端 `lib/github.js` 新增 `publish({ repoPath, name, visibility, branch, token })`：
+  用 PowerShell `Invoke-RestMethod` 走系统代理（`/user` 取 login → `GET /repos/<login>/<name>`
+  判断是否已存在，404 才 `POST /user/repos` 建仓），再用 `-c http.https://github.com/.extraheader`
+  注入令牌推送；**只在仓库还没有 `origin` 时才 `git remote add`**，已绑定的仓库不动它的 remote。
+  同名清理用 `sanitizeRepoName()`（非 `[A-Za-z0-9._-]` 折成 `-`）。
+- 新路由动作：`POST /dsh-vh/gh` 的 `{action:'publish', repoPath, name, visibility, branch}`。
+- 自测：`selftest-panel.mjs` 新增 `contextMenu` 段（对第一个仓库行触发 `onContextMenu` → 断言菜单四项、
+  仓库名标题、点「推送到私有仓库」后的 `POST /dsh-vh/gh` 与提示文案、点完菜单关闭）。
+- 预览：`render-preview.mjs` 支持 `VH_MENU=1`（渲染后自动在第一个仓库行上打开菜单），
+  产物 `preview-main-menu.html`。
+
 ## 0.1.12
 
 - **修：重启 DSH 后面板全 404（「读取失败：HTTP 404」/「Unexpected end of JSON input」/「本地 0 个仓库 / GitHub 未绑定 / 没有磁盘数据」）**。

@@ -196,10 +196,11 @@ if (panelMode && !panel) throw new Error('main panel was not registered')
 const tick = () => new Promise((r) => setTimeout(r, 0))
 
 // 每次渲染一个组件前把钩子表清空（迷你运行时没有组件实例的概念）
-async function renderComponent(component, props) {
+// mutate：先让组件自己稳定（等 fetch 落地），再对树做一次「交互」（例如触发右键菜单）并继续重渲染。
+async function renderComponent(component, props, mutate) {
   hooks = []
   let tree = null
-  for (let pass = 0; pass < 12; pass += 1) {
+  const pass = async () => {
     cursor = 0
     dirty = false
     tree = component(props || {})
@@ -208,9 +209,39 @@ async function renderComponent(component, props) {
     run.forEach((fn) => fn())
     await tick()
     await tick()
+  }
+  for (let i = 0; i < 12; i += 1) {
+    await pass()
     if (!dirty) break
   }
+  if (mutate && tree) {
+    mutate(tree)
+    for (let i = 0; i < 6; i += 1) {
+      await pass()
+      if (!dirty) break
+    }
+  }
   return tree
+}
+
+// 在渲染树上按 className 找第一个元素（给 VH_MENU 用）
+function findByClass(node, cls) {
+  if (!node || typeof node !== 'object') return null
+  if (Array.isArray(node)) {
+    for (const n of node) {
+      const hit = findByClass(n, cls)
+      if (hit) return hit
+    }
+    return null
+  }
+  if (typeof node.type === 'string' && node.props && typeof node.props.className === 'string' && node.props.className.split(/\s+/).indexOf(cls) >= 0) {
+    return node
+  }
+  for (const child of node.children || []) {
+    const hit = findByClass(child, cls)
+    if (hit) return hit
+  }
+  return null
 }
 
 // ---- tree -> html ----
@@ -246,7 +277,16 @@ function render(node) {
 const diskHtml = render(await renderComponent(disksTab.component, { embedded: true }))
 let body = ''
 if (panelMode) {
-  body = render(await renderComponent(panel, {}))
+  // VH_MENU=1：渲染后自动在第一个仓库行上触发右键菜单，用来截「推私有 / 推公开」菜单
+  const triggerMenu = process.env.VH_MENU
+    ? (tree) => {
+      const head = findByClass(tree, 'vh-grp-h')
+      if (head && head.props.onContextMenu) {
+        head.props.onContextMenu({ preventDefault() {}, stopPropagation() {}, clientX: 60, clientY: 208 })
+      }
+    }
+    : null
+  body = render(await renderComponent(panel, {}, triggerMenu))
   body = body.replace('<aside class="vh-dcol"></aside>', '<aside class="vh-dcol">' + diskHtml + '</aside>')
 } else if (lanMode) {
   body = render(await renderComponent(tabs['version-history:lan'].component, {}))
