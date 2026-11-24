@@ -386,7 +386,25 @@ let body = ''
 if (panelMode) {
   // VH_MENU=1：渲染后自动在第一个仓库行上触发右键菜单，用来截「推私有 / 推公开」菜单
   // VH_DIFF=1：点第一个版本行 → 点第一个文件 → 点「独立窗口」，用来截面板内的 diff 大窗口
+  // VH_DOCK=1：直接预置 diff 侧栏（client.js 读 window.__VH_DIFFWIN），用来截右侧挂靠的 diff 栏
   const steps = []
+  if (process.env.VH_DOCK) {
+    const patch = [
+      'diff --git a/lib/client.js b/lib/client.js',
+      'index 8f0c2ab..c4b1f7e 100644',
+      '--- a/lib/client.js',
+      '+++ b/lib/client.js',
+      '@@ -418,7 +418,9 @@',
+      "       '.vh-diff-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}',",
+      '-      \'.vh-cmp-right .vh-patch{max-height:calc(100vh - 300px)}\',',
+      "+      '.vh-dock{position:fixed;right:0;top:0;bottom:0;z-index:70;display:flex;flex-direction:column;background:var(--dsw-alias-bg-layer-1);border-left:1px solid var(--dsw-alias-border-l2)}',",
+      "+      '.vh-dock-rs{position:absolute;left:-3px;top:0;bottom:0;width:7px;cursor:col-resize;background:transparent}',",
+      '+      \'.vh-dw-h{display:flex;align-items:center;gap:8px;padding:7px 10px}\',',
+      '-      \'.vh-cmp-split.wide{grid-template-columns:minmax(0,1fr)!important}\',',
+      '+      // 侧栏贴右边，不再遮挡面板',
+    ].join('\n')
+    globalThis.window.__VH_DIFFWIN = { title: 'lib/client.js · v0.1.28..v0.1.29', text: patch }
+  }
   if (process.env.VH_MENU) {
     steps.push((tree) => {
       const head = findByClass(tree, 'vh-grp-h')
