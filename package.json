@@ -1,6 +1,6 @@
 {
   "name": "dsh-version-history",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "publishConfig": { "access": "public" },
   "type": "module",
   "description": "GIT管理：本机 git 项目的版本历史面板 + 磁盘容量/SMART 健康 + 局域网共享 + GitHub 推送（DSH 侧边栏）",
