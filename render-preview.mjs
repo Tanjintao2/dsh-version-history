@@ -388,6 +388,10 @@ if (panelMode) {
   // VH_DIFF=1：点第一个版本行 → 点第一个文件 → 点「独立窗口」，用来截面板内的 diff 大窗口
   // VH_DOCK=1：直接预置 diff 侧栏（client.js 读 window.__VH_DIFFWIN），用来截右侧挂靠的 diff 栏
   const steps = []
+  // VH_EXPAND=1：默认把「左栏当前仓库的第一个版本」展开，用来截版本号下方的折叠块
+  if (process.env.VH_EXPAND) {
+    globalThis.window.__VH_OPENV = { '0:0': true }
+  }
   if (process.env.VH_DOCK) {
     const patch = [
       'diff --git a/lib/client.js b/lib/client.js',
