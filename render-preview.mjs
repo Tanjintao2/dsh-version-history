@@ -126,6 +126,28 @@ globalThis.fetch = (url) => {
     })
   }
   if (String(url).endsWith('/data.json')) return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(data) })
+  if (String(url).indexOf('/filediff') >= 0) {
+    const patch = [
+      'diff --git a/lib/client.js b/lib/client.js',
+      'index 1234567..89abcde 100644',
+      '--- a/lib/client.js',
+      '+++ b/lib/client.js',
+      '@@ -1,6 +1,8 @@ window.__ModuleLoader__.load({',
+      '   id: "dsh-version-history",',
+      '-  factory(require) {}',
+      '+  factory(require) {',
+      '+    const React = require("react")',
+      '     return {}',
+      '   }',
+      '-})',
+      '+})',
+      '',
+    ].join('\n')
+    if (String(url).indexOf('/filediff.html') >= 0) {
+      return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve('<html>stub</html>'), json: () => Promise.resolve({}) })
+    }
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ ok: true, file: 'lib/client.js', range: 'v1..v2', bytes: patch.length, truncated: false, patch }) })
+  }
   if (String(url).endsWith('/lan.json')) {
     return Promise.resolve({
       ok: true,
@@ -273,8 +295,10 @@ async function renderComponent(component, props, mutate) {
     await pass()
     if (!dirty) break
   }
-  if (mutate && tree) {
-    mutate(tree)
+  const steps = typeof mutate === 'function' ? [mutate] : (Array.isArray(mutate) ? mutate : [])
+  for (const step of steps) {
+    if (!tree) break
+    step(tree)
     for (let i = 0; i < 6; i += 1) {
       await pass()
       if (!dirty) break
@@ -361,15 +385,31 @@ const diskHtml = render(await renderComponent(disksTab.component, { embedded: tr
 let body = ''
 if (panelMode) {
   // VH_MENU=1：渲染后自动在第一个仓库行上触发右键菜单，用来截「推私有 / 推公开」菜单
-  const triggerMenu = process.env.VH_MENU
-    ? (tree) => {
+  // VH_DIFF=1：点第一个版本行 → 点第一个文件 → 点「独立窗口」，用来截面板内的 diff 大窗口
+  const steps = []
+  if (process.env.VH_MENU) {
+    steps.push((tree) => {
       const head = findByClass(tree, 'vh-grp-h')
       if (head && head.props.onContextMenu) {
         head.props.onContextMenu({ preventDefault() {}, stopPropagation() {}, clientX: 60, clientY: 208 })
       }
-    }
-    : null
-  body = render(await renderComponent(panel, {}, triggerMenu))
+    })
+  }
+  if (process.env.VH_DIFF) {
+    steps.push((tree) => {
+      const v = findByClass(tree, 'vh-v')
+      if (v && v.props.onClick) v.props.onClick({ preventDefault() {}, stopPropagation() {} })
+    })
+    steps.push((tree) => {
+      const f = findByClass(tree, 'vh-frow')
+      if (f && f.props.onClick) f.props.onClick({ preventDefault() {}, stopPropagation() {} })
+    })
+    steps.push((tree) => {
+      const btn = findByText(tree, '独立窗口')
+      if (btn && btn.props.onClick) btn.props.onClick({ preventDefault() {}, stopPropagation() {} })
+    })
+  }
+  body = render(await renderComponent(panel, {}, steps))
   body = body.replace('<aside class="vh-dcol"></aside>', '<aside class="vh-dcol">' + diskHtml + '</aside>')
 } else if (aboutMode) {
   body = render(await renderComponent(tabs['version-history:about'].component, {}))
