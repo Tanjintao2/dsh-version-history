@@ -18,11 +18,13 @@ const panelMode = args.includes('--panel')
 const lanMode = args.includes('--lan')
 const githubMode = args.includes('--github')
 const backupMode = args.includes('--backup')
+const aboutMode = args.includes('--about')
 const out = args.find((a) => !a.startsWith('--')) ||
-  join(here, panelMode ? 'preview-main.html'
-    : (lanMode ? 'preview-lan.html'
-      : (githubMode ? 'preview-github.html'
-        : (backupMode ? 'preview-backup.html' : 'preview-disks.html'))))
+  join(here, aboutMode ? 'preview-about.html'
+    : (panelMode ? 'preview-main.html'
+      : (lanMode ? 'preview-lan.html'
+        : (githubMode ? 'preview-github.html'
+          : (backupMode ? 'preview-backup.html' : 'preview-disks.html')))))
 
 const src = readFileSync(join(here, 'lib', 'client.js'), 'utf8')
 const health = JSON.parse(readFileSync(process.env.VH_HEALTH || 'E:/Git/reports/health.json', 'utf8'))
@@ -91,6 +93,38 @@ const req = (id) => {
 
 globalThis.fetch = (url) => {
   if (String(url).endsWith('/disks.json')) return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(health) })
+  if (String(url).endsWith('/diag.json')) {
+    const now = new Date().toISOString()
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        plugin: { name: 'dsh-version-history', version: '0.1.16', root: 'D:\\plugins\\dsh-version-history' },
+        node: 'v24.21.0',
+        pid: 4242,
+        uptimeSec: 3600,
+        routes: [
+          { method: 'GET', path: '/version-history/health' },
+          { method: 'GET', path: '/version-history/data.json' },
+          { method: 'GET', path: '/version-history/disks.json' },
+          { method: 'GET', path: '/version-history/backup.json' },
+          { method: 'GET', path: '/version-history/github.json' },
+          { method: 'GET', path: '/version-history/diag.json' },
+          { method: 'POST', path: '/dsh-vh/gh' },
+          { method: 'POST', path: '/dsh-vh/backup' },
+        ],
+        files: [
+          { path: 'D:\\reports\\data.json', exists: true, bytes: 65913, mtime: now },
+          { path: 'D:\\reports\\health.json', exists: true, bytes: 9141, mtime: now },
+          { path: 'D:\\reports\\backup.json', exists: true, bytes: 1938, mtime: now },
+          { path: 'D:\\reports\\github.json', exists: true, bytes: 812, mtime: now },
+          { path: 'D:\\reports\\smart.json', exists: true, bytes: 14373, mtime: now },
+          { path: 'D:\\reports\\repos.json', exists: true, bytes: 259, mtime: now },
+          { path: 'D:\\reports\\history.html', exists: true, bytes: 77390, mtime: now },
+        ],
+      }),
+    })
+  }
   if (String(url).endsWith('/data.json')) return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(data) })
   if (String(url).endsWith('/lan.json')) {
     return Promise.resolve({
@@ -215,6 +249,7 @@ if (!disksTab) throw new Error('disks tab was not registered')
 if (lanMode && !tabs['version-history:lan']) throw new Error('lan tab was not registered')
 if (githubMode && !tabs['version-history:github']) throw new Error('github tab was not registered')
 if (backupMode && !tabs['version-history:backup']) throw new Error('backup tab was not registered')
+if (aboutMode && !tabs['version-history:about']) throw new Error('about tab was not registered')
 if (panelMode && !panel) throw new Error('main panel was not registered')
 
 const tick = () => new Promise((r) => setTimeout(r, 0))
@@ -246,6 +281,30 @@ async function renderComponent(component, props, mutate) {
     }
   }
   return tree
+}
+
+// 在渲染树上按文字找第一个按钮/元素（给 --about 点「关于」用）
+function findByText(node, text) {
+  if (!node || typeof node !== 'object') return null
+  if (Array.isArray(node)) {
+    for (const n of node) {
+      const hit = findByText(n, text)
+      if (hit) return hit
+    }
+    return null
+  }
+  if (node.props && node.props.onClick) {
+    const kids = node.children || []
+    for (const k of kids) {
+      if (typeof k === 'string' && k.trim() === text) return node
+      if (k && typeof k === 'object' && Array.isArray(k.children) && k.children.some((x) => typeof x === 'string' && x.trim() === text)) return node
+    }
+  }
+  for (const child of node.children || []) {
+    const hit = findByText(child, text)
+    if (hit) return hit
+  }
+  return null
 }
 
 // 在渲染树上按 className 找第一个元素（给 VH_MENU 用）
@@ -312,6 +371,8 @@ if (panelMode) {
     : null
   body = render(await renderComponent(panel, {}, triggerMenu))
   body = body.replace('<aside class="vh-dcol"></aside>', '<aside class="vh-dcol">' + diskHtml + '</aside>')
+} else if (aboutMode) {
+  body = render(await renderComponent(tabs['version-history:about'].component, {}))
 } else if (lanMode) {
   body = render(await renderComponent(tabs['version-history:lan'].component, {}))
 } else if (githubMode) {
@@ -325,10 +386,10 @@ if (panelMode) {
 const frameCss = panelMode
   ? `.frame{width:1240px;height:calc(100vh - 28px);}`
   : `.frame{width:520px;height:calc(100vh - 28px);}`
-const barTitle = panelMode ? '主面板 · GIT管理（含常驻磁盘列）'
+const barTitle = aboutMode ? '主面板 · 关于 / 诊断' : (panelMode ? '主面板 · GIT管理（含常驻磁盘列）'
   : (lanMode ? '右侧栏 · 局域网 Git'
     : (githubMode ? '右侧栏 · GitHub'
-      : (backupMode ? '主面板 · 备份设置' : '右侧栏 · 磁盘')))
+      : (backupMode ? '主面板 · 备份设置' : '右侧栏 · 磁盘'))))
 
 const html = `<!doctype html>
 <html lang="zh-CN"><head><meta charset="utf-8"><title>${panelMode ? '主面板预览' : (githubMode ? 'GitHub 面板预览' : (backupMode ? '备份设置预览' : '磁盘面板预览'))}</title>

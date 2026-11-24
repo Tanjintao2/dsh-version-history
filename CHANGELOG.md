@@ -1,3 +1,11 @@
+# 更新日志
+
+## 0.1.17
+
+- 左栏仓库行加勾选框 + 顶栏「批量推送 N」：逐个推送到各仓自己的 origin，逐仓显示等待/推送中/成功/失败；「禁止推送」锁打开时整批立即停下（Host 返回 423）。
+- 磁盘告警：/data.json 里各盘 isk.level 与上次记住的比，变差时面板顶部出横幅，浏览器有通知权限时同时发一条系统通知。
+- 历史趋势：Host 每次真扫完往 health-history.json 追加一个点（最多 60 条），磁盘卡片里画「磨损 / 重映射 / 可用空间」小折线；新增 GET /version-history/history.json。
+- 版本对比后端就绪：GET /version-history/diff?repo=&a=&b= 返回 git diff --numstat 的文件级增删 + git log 提交列表（前端界面待下一版）。
 # Changelog
 
 All notable changes to this plugin. Versions follow the git tags in this repo;

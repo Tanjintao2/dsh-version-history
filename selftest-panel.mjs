@@ -1,4 +1,5 @@
 // Full offline render test for the panel: a tiny hook runtime + real data.json.
+// Full offline render test for the panel: a tiny hook runtime + real data.json.
 // Verifies the plugin panel lists projects, renders a version detail on click,
 // and switches projects — without a browser.
 // Usage: node selftest-panel.mjs
@@ -290,6 +291,19 @@ const textOf = (node) => walk(node).filter((n) => typeof n === 'string').join(''
 const isEl = (n) => n && typeof n === 'object' && typeof n.type === 'string'
 const nodesOf = (tree) => walk(tree).filter(isEl)
 const byClass = (tree, cls) => nodesOf(tree).filter((n) => typeof n.props.className === 'string' && n.props.className.split(/\s+/).includes(cls))
+
+function byTag(node, tag) {
+  const out = []
+  const walk = (n) => {
+    if (!n || typeof n !== 'object') return
+    if (n.type === tag) out.push(n)
+    const ch = n.children
+    const list = Array.isArray(ch) ? ch : (ch == null ? [] : [ch])
+    list.forEach(walk)
+  }
+  walk(node)
+  return out
+}
 const paneText = (tree) => byClass(tree, 'vh-pane').map(textOf).join('\n')
 
 // ---- checks -----------------------------------------------------------
@@ -385,6 +399,40 @@ result.repoPaths = byClass(tree, 'vh-repo-path').map(textOf)
   }
   data.repos[0].dirty = savedDirty
   data.repos[0].versions = savedVersions
+  hooks = []
+  tree = await settle(panel)
+}
+
+// 批量推送：勾选两个仓 → 点「批量推送」→ 逐仓 POST /dsh-vh/gh（锁在 Host 侧）
+{
+  hooks = []
+  let bt = await settle(panel)
+  const picks = byClass(bt, 'vh-pick')
+  if (picks.length >= 2) {
+    picks[0].props.onClick({ preventDefault() {}, stopPropagation() {} })
+    bt = await settle()
+    const picks2 = byClass(bt, 'vh-pick')
+    picks2[1].props.onClick({ preventDefault() {}, stopPropagation() {} })
+    bt = await settle()
+    const before = fetchCalls.length
+    const btn = byClass(bt, 'vh-btn').find((b) => textOf(b).indexOf('批量推送') >= 0)
+    if (btn) btn.props.onClick({ preventDefault() {}, target: null })
+    for (let i = 0; i < 12; i += 1) {
+      bt = await settle()
+      const box = byClass(bt, 'vh-batch')[0]
+      if (box && byClass(box, 'st').every((s) => textOf(s).indexOf('推送中') < 0)) break
+    }
+    const box = byClass(bt, 'vh-batch')[0]
+    result.batchPush = {
+      picked: byClass(bt, 'vh-pick').filter((p) => String(p.props.className).indexOf('on') >= 0).length,
+      widget: !!box,
+      rows: box ? byTag(box, 'li').map((li) => textOf(li).replace(/\s+/g, ' ').trim().slice(0, 40)) : [],
+      posts: fetchCalls.slice(before).filter((c) => c.method === 'POST').length,
+      note: box ? textOf(box).replace(/\s+/g, ' ').slice(0, 40) : '',
+    }
+  } else {
+    result.batchPush = { picked: 0, reason: 'no pick checkboxes' }
+  }
   hooks = []
   tree = await settle(panel)
 }
