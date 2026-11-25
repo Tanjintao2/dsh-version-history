@@ -175,7 +175,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\scripts\backup-all.ps1 -D
 
 `health`、`data.json`、`report`、`refresh`、`repos`、`repos/add`、`repos/remove`、`disks.json`、`disks/scan`、`smart.json`、`smart.state.json`、`smart.log`、`smart/scan`、`lan.json`、`lan/start`、`lan/stop`、`lan/firewall`、`github.json`、`github/test`。
 
-写操作走 `POST /dsh-vh/gh`（body `action` ∈ `bind | unbind | test | push | repos`）—— DSH 的 `webServer.resource` 路由只放行 GET，POST 必须在宿主层被 405 之前另开一条普通 handler。
+写操作走 `POST /dsh-vh/gh`、`POST /dsh-vh/backup`、`POST /dsh-vh/lan`（body 里带 `action`）—— DSH 的 `webServer.resource` 路由只放行 GET，POST 必须在宿主层被 405 之前另开一条普通 handler。
+
+**访问检查**：这些路由（含 GET）在进入业务逻辑前都会先问宿主的 `ctx.connection.requestRejection({ headers })`，
+401 回 `unauthorized`、403 回 `forbidden`。也就是说，浏览器里别的站点直接 `fetch` 过来会被挡掉，
+只有 DSH 自己的面板（同源、带登录态）能取数。老宿主没有 `connection` 服务时退回原行为。
 
 ## 目录
 

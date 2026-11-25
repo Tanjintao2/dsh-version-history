@@ -4,6 +4,15 @@ All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 （0.1.19–0.1.41 的改动以 tag 为准，未逐条补写。）
 
+## 0.1.44
+
+- **HTTP 路由加上 DSH 的访问检查**：`/version-history/*` 与三个写操作
+  （`POST /dsh-vh/gh`、`/dsh-vh/backup`、`/dsh-vh/lan`）在进入业务逻辑前先问宿主的
+  `ctx.connection.requestRejection({ headers })` —— 返回 401 就回 `unauthorized`，
+  返回 403 就回 `forbidden`，未定义则照常处理。此前这些路由不看 Origin/Host，
+  浏览器里随便一个网页都能 `fetch` 过来读写本机 git 与令牌，等于把本机权限借给任意页面。
+  老宿主没有这个服务时（`ctx.get('connection')` 取不到）自动退回原行为。
+
 ## 0.1.43
 
 - `lib/backup.js` 的镜像路径校验现在也接受 POSIX 绝对路径（`/mnt/backup`、CI 的临时目录），
