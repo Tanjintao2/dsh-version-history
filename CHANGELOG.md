@@ -4,6 +4,24 @@ All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 （0.1.19–0.1.41 的改动以 tag 为准，未逐条补写。）
 
+## 0.1.45
+
+修 0.1.44 的两处回归 —— 两个都不是「少写一段」，而是**类型/对象用错**，且都只在真实页面里才暴露：
+
+- **访问检查读不到 Cookie，连面板自己也被 401 挡住**：`prefix` 资源路由交给 resource 的是
+  Fetch 的 `Request`，`headers` 是 `Headers` 实例；而 `ctx.connection.requestRejection` 只认
+  「小写键的普通对象」（内部按 `headers.cookie` 取值）。于是同一个 `Host` 下、带着有效
+  会话 Cookie 的面板请求也被判成「未登录」，`data.json` / `github.json` / `lan.json` 全部 401
+  ——面板显示的还是 `sessionStorage` 里上一次的缓存，看起来像「数据都在、只有 GitHub 未绑定」。
+  现在先 `plainHeaders()` 规范化（`Headers` 实例 → 普通对象、键转小写），再交给宿主判断；
+  exact 路由拿到的 node `IncomingMessage` 走同一条路径，行为一致。
+- **主面板 `loadGh()` 忘了把响应转成 JSON**：`.then(function (st) { setGh(...) })` 里 `st` 是
+  `Response` 对象，`st.bound` 恒为 `undefined`，所以后端返回 `bound: true` 也会渲染成「未绑定」。
+  现在与 `loadLan()` / `loadData()` 一致，先 `r.ok ? r.json() : null` 再判断。
+- 被拦的请求现在会往 `<reports>/fence.log` 记一行（时间、401/403、方法、URL、Host、Origin、
+  Referer、UA、有没有带 Cookie），超过 64 KB 自动只留最后 200 行。只在真的拦截时写，
+  正常请求没有额外 IO —— 下次再出这类问题，先看这个文件。
+
 ## 0.1.44
 
 - **HTTP 路由加上 DSH 的访问检查**：`/version-history/*` 与三个写操作
