@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createLan } from './lib/lan.js'
 
-const GIT = process.env.VH_GIT || 'E:\\Git\\tools\\git\\cmd\\git.exe'
+const GIT = process.env.DSH_VH_GIT || process.env.VH_GIT || 'git'
 const PORT = 8799
 const root = mkdtempSync(join(tmpdir(), 'vh-lan-'))
 const bare = join(root, 'demo.git')

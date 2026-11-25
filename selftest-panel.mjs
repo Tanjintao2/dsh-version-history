@@ -1,16 +1,22 @@
-// Full offline render test for the panel: a tiny hook runtime + real data.json.
-// Full offline render test for the panel: a tiny hook runtime + real data.json.
+// Full offline render test for the panel: a tiny hook runtime + a data.json snapshot.
 // Verifies the plugin panel lists projects, renders a version detail on click,
 // and switches projects — without a browser.
 // Usage: node selftest-panel.mjs
-import { readFileSync } from 'node:fs'
+//   Data source order: $DSH_VH_DATA / $DSH_VH_HEALTH → local E:/Git/reports/*.json
+//   → test/fixture-*.json (neutral fixture, so CI can run this without a machine).
+import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 const here = dirname(fileURLToPath(import.meta.url))
 const src = readFileSync(join(here, 'lib', 'client.js'), 'utf8')
-const data = JSON.parse(readFileSync('E:/Git/reports/data.json', 'utf8'))
-const health = JSON.parse(readFileSync('E:/Git/reports/health.json', 'utf8'))
+const pick = (envKey, localPath, fixtureName) => {
+  if (process.env[envKey]) return process.env[envKey]
+  if (existsSync(localPath)) return localPath
+  return join(here, 'test', fixtureName)
+}
+const data = JSON.parse(readFileSync(pick('DSH_VH_DATA', 'E:/Git/reports/data.json', 'fixture-data.json'), 'utf8'))
+const health = JSON.parse(readFileSync(pick('DSH_VH_HEALTH', 'E:/Git/reports/health.json', 'fixture-health.json'), 'utf8'))
 
 // ---- tiny hook runtime ------------------------------------------------
 let hooks = []
@@ -95,7 +101,7 @@ if (String(url).endsWith('/smart.json')) {
   return Promise.resolve({
     ok: true,
     status: 200,
-    json: () => Promise.resolve({ file: 'E:\\Git\\reports\\smart.json', exists: true, bytes: 2048, mtimeMs: Date.now() + 5, mtime: new Date().toISOString() }),
+    json: () => Promise.resolve({ file: 'D:\\reports\\smart.json', exists: true, bytes: 2048, mtimeMs: Date.now() + 5, mtime: new Date().toISOString() }),
   })
 }
 if (String(url).endsWith('/lan.json')) {
@@ -106,10 +112,10 @@ if (String(url).endsWith('/lan.json')) {
       running: true,
       port: 8788,
       startedAt: new Date().toISOString(),
-      root: 'E:\\Git\\repos',
-      repos: ['local.git'],
+      root: 'D:\\repos',
+      repos: ['demo-app.git'],
       ips: [{ address: '192.168.1.10', name: '以太网 2' }],
-      urls: ['http://192.168.1.10:8788/git/local.git'],
+      urls: ['http://192.168.1.10:8788/git/demo-app.git'],
       error: null,
     }),
   })
@@ -129,7 +135,7 @@ if (String(url).endsWith('/github.json')) {
       fullName: 'demo/git-demo',
       url: 'https://github.com/demo/git-demo.git',
       branch: 'main',
-      repoPath: 'E:\\Git\\work\\local',
+      repoPath: 'D:\\repos\\local',
       hasToken: true,
       tokenMasked: 'ghp_…cd34',
       updatedAt: '2026-11-22 22:30:00',

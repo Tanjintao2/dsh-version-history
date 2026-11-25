@@ -1,9 +1,21 @@
 # 更新日志
 
+All notable changes to this plugin. Versions follow the git tags in this repo;
+each tag has a matching GitHub Release with an installable tarball.
+（0.1.19–0.1.41 的改动以 tag 为准，未逐条补写。）
+
+## 0.1.42
+
+- **CI 可跑**：`selftest-panel.mjs` 不再硬编码 `E:/Git/reports/*.json` —— 改为
+  `$DSH_VH_DATA` / `$DSH_VH_HEALTH` → 本机 `E:/Git/reports/*.json` → 内置夹具三级回退，
+  所以 GitHub Actions 的 runner 上也能跑完整面板渲染自测。
+- 新增 `test/build-fixture.mjs`（维护者工具，把真实 `data.json` / `health.json` 洗成中性夹具）
+  与 `test/fixture-data.json`、`test/fixture-health.json`（仓库名、路径、提交、文件、盘型号与序列号全部替换）。
+- `selftest-lan.mjs` 的 git 路径改读 `DSH_VH_GIT`（原先只认 `VH_GIT`，CI 上传的变量名读不到）。
+
 ## 0.1.18
 
 - 版本对比界面：顶栏「对比」→ 选仓库 + 两个版本 → 文件级 +/− 表与区间提交；走 GET /version-history/diff（只读）。
-# 更新日志
 
 ## 0.1.17
 
@@ -11,10 +23,6 @@
 - 磁盘告警：/data.json 里各盘 isk.level 与上次记住的比，变差时面板顶部出横幅，浏览器有通知权限时同时发一条系统通知。
 - 历史趋势：Host 每次真扫完往 health-history.json 追加一个点（最多 60 条），磁盘卡片里画「磨损 / 重映射 / 可用空间」小折线；新增 GET /version-history/history.json。
 - 版本对比后端就绪：GET /version-history/diff?repo=&a=&b= 返回 git diff --numstat 的文件级增删 + git log 提交列表（前端界面待下一版）。
-# Changelog
-
-All notable changes to this plugin. Versions follow the git tags in this repo;
-each tag has a matching GitHub Release with an installable tarball.
 
 ## 0.1.16
 

@@ -1,0 +1,665 @@
+{
+  "scanned": "2026-01-01 00:00:00",
+  "admin": false,
+  "eventDays": 30,
+  "smart": {
+    "available": true,
+    "admin": false,
+    "file": "D:\\reports\\smart.json",
+    "generated": "2026-11-23 01:35:32",
+    "ageHours": 0,
+    "reason": ""
+  },
+  "disks": [
+    {
+      "index": 0,
+      "model": "Demo HDD 466GB",
+      "kind": "HDD",
+      "busType": "SATA",
+      "serial": "SN-DEMO-01",
+      "sizeGB": 465.8,
+      "health": "Healthy",
+      "operational": "OK",
+      "spindleSpeed": "Unknown",
+      "logicalSector": 512,
+      "physicalSector": 4096,
+      "isBoot": false,
+      "volumes": [
+        {
+          "letter": "E:",
+          "label": "Demo1",
+          "fs": "NTFS",
+          "totalGB": 465.8,
+          "freeGB": 436.9,
+          "usedPct": 6.2,
+          "health": "Healthy",
+          "system": false
+        }
+      ],
+      "events": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0,
+        "last": null
+      },
+      "smart": {
+        "index": 0,
+        "kind": "HDD",
+        "source": "storage+ata",
+        "tempC": 38,
+        "tempMaxC": 0,
+        "wearPct": 0,
+        "powerOnHours": 27683,
+        "powerCycles": 3327,
+        "startStopCount": 3662,
+        "loadUnloadCount": null,
+        "readErrorsUncorrected": 0,
+        "writeErrorsUncorrected": null,
+        "readErrorsTotal": 10392,
+        "writeErrorsTotal": null,
+        "reallocatedSectors": 10392,
+        "pendingSectors": 0,
+        "offlineUncorrectable": 0,
+        "reportedUncorrect": 165,
+        "crcErrors": 1044,
+        "attrs": [
+          {
+            "id": 1,
+            "name": "底层读取错误率",
+            "value": 108,
+            "worst": 87,
+            "raw": 15911920,
+            "rawText": "15911920"
+          },
+          {
+            "id": 3,
+            "name": "主轴起转时间",
+            "value": 100,
+            "worst": 97,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 4,
+            "name": "起停次数",
+            "value": 97,
+            "worst": 97,
+            "raw": 3662,
+            "rawText": "3662"
+          },
+          {
+            "id": 5,
+            "name": "重映射扇区数",
+            "value": 69,
+            "worst": 69,
+            "raw": 10392,
+            "rawText": "10392"
+          },
+          {
+            "id": 7,
+            "name": "寻道错误率",
+            "value": 77,
+            "worst": 60,
+            "raw": 30520584125,
+            "rawText": "30520584125"
+          },
+          {
+            "id": 9,
+            "name": "通电时间(小时)",
+            "value": 69,
+            "worst": 69,
+            "raw": 27683,
+            "rawText": "27683"
+          },
+          {
+            "id": 10,
+            "name": "主轴重试次数",
+            "value": 100,
+            "worst": 100,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 12,
+            "name": "电源开关次数",
+            "value": 97,
+            "worst": 97,
+            "raw": 3327,
+            "rawText": "3327"
+          },
+          {
+            "id": 183,
+            "name": "",
+            "value": 100,
+            "worst": 100,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 184,
+            "name": "端到端错误",
+            "value": 100,
+            "worst": 100,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 187,
+            "name": "报告不可纠正错误",
+            "value": 1,
+            "worst": 1,
+            "raw": 165,
+            "rawText": "165"
+          },
+          {
+            "id": 188,
+            "name": "命令超时",
+            "value": 100,
+            "worst": 7,
+            "raw": 1007,
+            "rawText": "1007"
+          },
+          {
+            "id": 189,
+            "name": "",
+            "value": 100,
+            "worst": 100,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 190,
+            "name": "气流温度",
+            "value": 62,
+            "worst": 50,
+            "raw": 73653288998,
+            "rawText": "73653288998"
+          },
+          {
+            "id": 194,
+            "name": "温度",
+            "value": 38,
+            "worst": 50,
+            "raw": 140737488355366,
+            "rawText": "140737488355366"
+          },
+          {
+            "id": 195,
+            "name": "硬件 ECC 恢复",
+            "value": 12,
+            "worst": 9,
+            "raw": 15911920,
+            "rawText": "15911920"
+          },
+          {
+            "id": 197,
+            "name": "当前待重映射扇区",
+            "value": 100,
+            "worst": 98,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 198,
+            "name": "离线不可纠正扇区",
+            "value": 100,
+            "worst": 98,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 199,
+            "name": "UDMA CRC 错误",
+            "value": 200,
+            "worst": 200,
+            "raw": 1044,
+            "rawText": "1044"
+          },
+          {
+            "id": 240,
+            "name": "",
+            "value": 100,
+            "worst": 253,
+            "raw": 31993211415565,
+            "rawText": "31993211415565"
+          },
+          {
+            "id": 241,
+            "name": "主机写入总量",
+            "value": 100,
+            "worst": 253,
+            "raw": 1647750032,
+            "rawText": "1647750032"
+          },
+          {
+            "id": 242,
+            "name": "主机读取总量",
+            "value": 100,
+            "worst": 253,
+            "raw": 3752505957,
+            "rawText": "3752505957"
+          }
+        ],
+        "hostWrittenGB": null,
+        "mediaErrors": null,
+        "unsafeShutdowns": null,
+        "availableSparePct": null,
+        "nvmeVia": "",
+        "note": ""
+      },
+      "risk": {
+        "score": 30,
+        "level": "warn",
+        "reasons": [
+          "重映射扇区 10392 个"
+        ]
+      }
+    },
+    {
+      "index": 1,
+      "model": "Demo HDD 466GB",
+      "kind": "HDD",
+      "busType": "SATA",
+      "serial": "SN-DEMO-02",
+      "sizeGB": 465.8,
+      "health": "Healthy",
+      "operational": "OK",
+      "spindleSpeed": "Unknown",
+      "logicalSector": 512,
+      "physicalSector": 512,
+      "isBoot": false,
+      "volumes": [
+        {
+          "letter": "I:",
+          "label": "Demo1",
+          "fs": "NTFS",
+          "totalGB": 465.8,
+          "freeGB": 465.5,
+          "usedPct": 0.1,
+          "health": "Healthy",
+          "system": false
+        }
+      ],
+      "events": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0,
+        "last": null
+      },
+      "smart": {
+        "index": 1,
+        "kind": "HDD",
+        "source": "storage+ata",
+        "tempC": 40,
+        "tempMaxC": 0,
+        "wearPct": 0,
+        "powerOnHours": 19426,
+        "powerCycles": 63628,
+        "startStopCount": 65311,
+        "loadUnloadCount": null,
+        "readErrorsUncorrected": 0,
+        "writeErrorsUncorrected": null,
+        "readErrorsTotal": 0,
+        "writeErrorsTotal": null,
+        "reallocatedSectors": 0,
+        "pendingSectors": 0,
+        "offlineUncorrectable": 0,
+        "reportedUncorrect": 324,
+        "crcErrors": 2,
+        "attrs": [
+          {
+            "id": 1,
+            "name": "底层读取错误率",
+            "value": 102,
+            "worst": 92,
+            "raw": 4292367,
+            "rawText": "4292367"
+          },
+          {
+            "id": 3,
+            "name": "主轴起转时间",
+            "value": 100,
+            "worst": 100,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 4,
+            "name": "起停次数",
+            "value": 37,
+            "worst": 37,
+            "raw": 65311,
+            "rawText": "65311"
+          },
+          {
+            "id": 5,
+            "name": "重映射扇区数",
+            "value": 100,
+            "worst": 100,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 7,
+            "name": "寻道错误率",
+            "value": 80,
+            "worst": 60,
+            "raw": 113785955,
+            "rawText": "113785955"
+          },
+          {
+            "id": 9,
+            "name": "通电时间(小时)",
+            "value": 78,
+            "worst": 78,
+            "raw": 19426,
+            "rawText": "19426"
+          },
+          {
+            "id": 10,
+            "name": "主轴重试次数",
+            "value": 100,
+            "worst": 100,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 12,
+            "name": "电源开关次数",
+            "value": 38,
+            "worst": 38,
+            "raw": 63628,
+            "rawText": "63628"
+          },
+          {
+            "id": 183,
+            "name": "",
+            "value": 97,
+            "worst": 97,
+            "raw": 3,
+            "rawText": "3"
+          },
+          {
+            "id": 184,
+            "name": "端到端错误",
+            "value": 100,
+            "worst": 100,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 187,
+            "name": "报告不可纠正错误",
+            "value": 1,
+            "worst": 1,
+            "raw": 324,
+            "rawText": "324"
+          },
+          {
+            "id": 188,
+            "name": "命令超时",
+            "value": 100,
+            "worst": 99,
+            "raw": 22,
+            "rawText": "22"
+          },
+          {
+            "id": 189,
+            "name": "",
+            "value": 100,
+            "worst": 100,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 190,
+            "name": "气流温度",
+            "value": 60,
+            "worst": 47,
+            "raw": 689242152,
+            "rawText": "689242152"
+          },
+          {
+            "id": 194,
+            "name": "温度",
+            "value": 40,
+            "worst": 53,
+            "raw": 55834574888,
+            "rawText": "55834574888"
+          },
+          {
+            "id": 195,
+            "name": "硬件 ECC 恢复",
+            "value": 12,
+            "worst": 11,
+            "raw": 4292367,
+            "rawText": "4292367"
+          },
+          {
+            "id": 197,
+            "name": "当前待重映射扇区",
+            "value": 100,
+            "worst": 99,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 198,
+            "name": "离线不可纠正扇区",
+            "value": 100,
+            "worst": 99,
+            "raw": 0,
+            "rawText": "0"
+          },
+          {
+            "id": 199,
+            "name": "UDMA CRC 错误",
+            "value": 200,
+            "worst": 200,
+            "raw": 2,
+            "rawText": "2"
+          },
+          {
+            "id": 240,
+            "name": "",
+            "value": 100,
+            "worst": 253,
+            "raw": 241626270220267,
+            "rawText": "241626270220267"
+          },
+          {
+            "id": 241,
+            "name": "主机写入总量",
+            "value": 100,
+            "worst": 253,
+            "raw": 3255282856,
+            "rawText": "3255282856"
+          },
+          {
+            "id": 242,
+            "name": "主机读取总量",
+            "value": 100,
+            "worst": 253,
+            "raw": 3683440107,
+            "rawText": "3683440107"
+          }
+        ],
+        "hostWrittenGB": null,
+        "mediaErrors": null,
+        "unsafeShutdowns": null,
+        "availableSparePct": null,
+        "nvmeVia": "",
+        "note": ""
+      },
+      "risk": {
+        "score": 0,
+        "level": "ok",
+        "reasons": [
+          "未发现异常信号"
+        ]
+      }
+    },
+    {
+      "index": 2,
+      "model": "Demo SSD 1908GB",
+      "kind": "SSD",
+      "busType": "NVMe",
+      "serial": "SN-DEMO-03",
+      "sizeGB": 1907.7,
+      "health": "Healthy",
+      "operational": "OK",
+      "spindleSpeed": "",
+      "logicalSector": 512,
+      "physicalSector": 4096,
+      "isBoot": false,
+      "volumes": [
+        {
+          "letter": "G:",
+          "label": "Demo1",
+          "fs": "NTFS",
+          "totalGB": 1907.6,
+          "freeGB": 880.8,
+          "usedPct": 53.8,
+          "health": "Healthy",
+          "system": false
+        }
+      ],
+      "events": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0,
+        "last": null
+      },
+      "smart": {
+        "index": 2,
+        "kind": "SSD",
+        "source": "storage+nvme-smart",
+        "tempC": 40,
+        "tempMaxC": 90,
+        "wearPct": 1,
+        "powerOnHours": 5258,
+        "powerCycles": null,
+        "startStopCount": null,
+        "loadUnloadCount": null,
+        "readErrorsUncorrected": null,
+        "writeErrorsUncorrected": null,
+        "readErrorsTotal": null,
+        "writeErrorsTotal": null,
+        "reallocatedSectors": null,
+        "pendingSectors": null,
+        "offlineUncorrectable": null,
+        "reportedUncorrect": null,
+        "crcErrors": null,
+        "attrs": [],
+        "hostWrittenGB": 15588.9,
+        "mediaErrors": 0,
+        "unsafeShutdowns": 32,
+        "availableSparePct": 100,
+        "nvmeVia": "smartctl",
+        "note": ""
+      },
+      "risk": {
+        "score": 0,
+        "level": "ok",
+        "reasons": [
+          "未发现异常信号"
+        ]
+      }
+    },
+    {
+      "index": 3,
+      "model": "Demo SSD 932GB",
+      "kind": "SSD",
+      "busType": "NVMe",
+      "serial": "SN-DEMO-04",
+      "sizeGB": 931.5,
+      "health": "Healthy",
+      "operational": "OK",
+      "spindleSpeed": "",
+      "logicalSector": 512,
+      "physicalSector": 4096,
+      "isBoot": true,
+      "volumes": [
+        {
+          "letter": "C:",
+          "label": "Demo1",
+          "fs": "NTFS",
+          "totalGB": 255.1,
+          "freeGB": 67,
+          "usedPct": 73.8,
+          "health": "Healthy",
+          "system": false
+        },
+        {
+          "letter": "",
+          "label": "Demo2",
+          "fs": "NTFS",
+          "totalGB": 0.9,
+          "freeGB": 0.1,
+          "usedPct": 88.5,
+          "health": "Healthy",
+          "system": true
+        },
+        {
+          "letter": "D:",
+          "label": "Demo3",
+          "fs": "NTFS",
+          "totalGB": 675.2,
+          "freeGB": 337.5,
+          "usedPct": 50,
+          "health": "Healthy",
+          "system": false
+        }
+      ],
+      "events": {
+        "total": 0,
+        "errors": 0,
+        "warnings": 0,
+        "last": null
+      },
+      "smart": {
+        "index": 3,
+        "kind": "SSD",
+        "source": "storage+nvme-smart",
+        "tempC": 48,
+        "tempMaxC": 78,
+        "wearPct": 4,
+        "powerOnHours": 2749,
+        "powerCycles": null,
+        "startStopCount": null,
+        "loadUnloadCount": null,
+        "readErrorsUncorrected": null,
+        "writeErrorsUncorrected": null,
+        "readErrorsTotal": null,
+        "writeErrorsTotal": null,
+        "reallocatedSectors": null,
+        "pendingSectors": null,
+        "offlineUncorrectable": null,
+        "reportedUncorrect": null,
+        "crcErrors": null,
+        "attrs": [],
+        "hostWrittenGB": 21156.6,
+        "mediaErrors": 0,
+        "unsafeShutdowns": 82,
+        "availableSparePct": 100,
+        "nvmeVia": "smartctl",
+        "note": ""
+      },
+      "risk": {
+        "score": 0,
+        "level": "ok",
+        "reasons": [
+          "未发现异常信号"
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "total": 4,
+    "ssd": 2,
+    "hdd": 2,
+    "bad": 0,
+    "warn": 1,
+    "ok": 3
+  }
+}

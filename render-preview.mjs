@@ -8,7 +8,7 @@
 //   node render-preview.mjs --lan               -> preview-lan.html     (right-sidebar 局域网 tab)
 //   node render-preview.mjs --github            -> preview-github.html  (right-sidebar GitHub tab)
 //   node render-preview.mjs out.html --panel
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -27,8 +27,15 @@ const out = args.find((a) => !a.startsWith('--')) ||
           : (backupMode ? 'preview-backup.html' : 'preview-disks.html')))))
 
 const src = readFileSync(join(here, 'lib', 'client.js'), 'utf8')
-const health = JSON.parse(readFileSync(process.env.VH_HEALTH || 'E:/Git/reports/health.json', 'utf8'))
-const data = JSON.parse(readFileSync(process.env.VH_DATA || 'E:/Git/reports/data.json', 'utf8'))
+// 数据来源：$VH_HEALTH / $VH_DATA → 本机 E:/Git/reports/*.json → 仓库内中性夹具。
+// 有这个回退，任何一台机器（含 CI）都能直接跑出预览页，不必先装 visualize.ps1。
+const pick = (envKey, localPath, fixtureName) => {
+  if (process.env[envKey]) return process.env[envKey]
+  if (existsSync(localPath)) return localPath
+  return join(here, 'test', fixtureName)
+}
+const health = JSON.parse(readFileSync(pick('VH_HEALTH', 'E:/Git/reports/health.json', 'fixture-health.json'), 'utf8'))
+const data = JSON.parse(readFileSync(pick('VH_DATA', 'E:/Git/reports/data.json', 'fixture-data.json'), 'utf8'))
 
 // 预览页是给 README 截图用的，所以一律用中性占位替换本机身份信息：
 // 家目录（含 Windows 用户名）、物理盘型号/序列号、镜像根目录、局域网 IP 都不进图。
