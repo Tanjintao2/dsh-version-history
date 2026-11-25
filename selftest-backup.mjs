@@ -60,6 +60,11 @@ const result = { root, seeded: { alpha: a.pushOk, beta: b.pushOk } }
 // 1) 没密码可直接设镜像
 result.setMirrorNoPw = await bk.setMirror({ mirror })
 result.status1 = await bk.status()
+if (!result.setMirrorNoPw.ok) {
+  // 早退：镜像没设上，后面的 readdir 只会抛 ENOENT，看不出真正原因
+  console.log(JSON.stringify(result, null, 2))
+  process.exit(1)
+}
 
 // 2) 一键拷贝
 result.run1 = await bk.runCopy({})

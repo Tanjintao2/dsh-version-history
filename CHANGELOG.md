@@ -4,6 +4,12 @@ All notable changes to this plugin. Versions follow the git tags in this repo;
 each tag has a matching GitHub Release with an installable tarball.
 （0.1.19–0.1.41 的改动以 tag 为准，未逐条补写。）
 
+## 0.1.43
+
+- `lib/backup.js` 的镜像路径校验现在也接受 POSIX 绝对路径（`/mnt/backup`、CI 的临时目录），
+  不再只认 Windows 盘符 —— 这是 `selftest-backup.mjs` 在 ubuntu runner 上挂掉的根因。
+- `selftest-backup.mjs` 在「镜像没设上」时立刻早退并打印原因，不再二次踩 `readdir ENOENT`。
+
 ## 0.1.42
 
 - **CI 可跑**：`selftest-panel.mjs` 不再硬编码 `E:/Git/reports/*.json` —— 改为
